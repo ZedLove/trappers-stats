@@ -67,9 +67,7 @@ export function gameWarnings(game: Game): string[] {
   try {
     const warnings: string[] = [];
     const lineRuns = game.lines.reduce((total, line) => total + line.r, 0);
-    // The authoritative clean fixture records the team score as exactly twice
-    // the player-line total; preserve that fixture's intended clean status.
-    if (lineRuns !== game.score.us && lineRuns * 2 !== game.score.us) {
+    if (lineRuns !== game.score.us) {
       warnings.push(`Player-line runs (${lineRuns}) do not match team score (${game.score.us})`);
     }
     if (game.lines.length < 5) {

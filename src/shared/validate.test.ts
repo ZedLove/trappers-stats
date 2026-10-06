@@ -26,7 +26,7 @@ const baseGame = {
   phase: 'regular' as const,
   opponentId: 'eagles',
   location: 'Doverfield Park',
-  score: { us: 14, them: 9 },
+  score: { us: 7, them: 9 },
   lines: [
     { playerId: 'mike-s-1', ab: 3, '1b': 1, '2b': 1, '3b': 0, hr: 0, bb: 1, sf: 0, k: 1, r: 2 },
     { playerId: 'duke', ab: 3, '1b': 1, '2b': 0, '3b': 0, hr: 1, bb: 0, sf: 0, k: 0, r: 2 },
@@ -178,6 +178,12 @@ describe('gameWarnings', () => {
     };
     const warnings = gameWarnings(mismatched);
     expect(warnings.length).toBeGreaterThan(0);
+    expect(warnings.some((w: string) => w.toLowerCase().includes('run'))).toBe(true);
+  });
+
+  it('warns when the team score is exactly twice the sum of line runs', () => {
+    const mismatched = { ...baseGame, score: { ...baseGame.score, us: 14 } };
+    const warnings = gameWarnings(mismatched);
     expect(warnings.some((w: string) => w.toLowerCase().includes('run'))).toBe(true);
   });
 
