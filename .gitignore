@@ -12,6 +12,14 @@ dist
 dist-ssr
 *.local
 
+# Superpowers process docs (specs/plans stay local, solo project)
+docs/superpowers/
+.superpowers/
+
+test-results/
+playwright-report/
+.playwright/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
