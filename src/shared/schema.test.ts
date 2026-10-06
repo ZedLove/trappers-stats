@@ -190,8 +190,24 @@ describe('SeasonResultsSchema', () => {
     expect(SeasonResultsSchema.safeParse(minimal).success).toBe(true);
   });
 
-  it('rejects an unknown division in standings entry', () => {
-    expect(SeasonResultsSchema.safeParse({ ...validResults, division: 'C' }).success).toBe(false);
+  it('rejects an unknown division on a playoff matchup', () => {
+    const invalid = {
+      ...validResults,
+      playoffs: [{ ...validResults.playoffs[0], division: 'C' }],
+    };
+    expect(SeasonResultsSchema.safeParse(invalid).success).toBe(false);
+  });
+
+  it('accepts division "B" on a playoff matchup', () => {
+    expect(SeasonResultsSchema.safeParse(validResults).success).toBe(true);
+  });
+
+  it('accepts division omitted on a playoff matchup', () => {
+    const withoutDivision = {
+      ...validResults,
+      playoffs: [{ ...validResults.playoffs[0], division: undefined }],
+    };
+    expect(SeasonResultsSchema.safeParse(withoutDivision).success).toBe(true);
   });
 });
 

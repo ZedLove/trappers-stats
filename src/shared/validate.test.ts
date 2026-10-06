@@ -98,6 +98,22 @@ describe('validateData', () => {
     expect(validateData(invalid).length).toBeGreaterThan(0);
   });
 
+  it('reports an unknown teamId in results.standings', () => {
+    const invalid = {
+      ...validInput,
+      seasons: {
+        '2026': {
+          ...cleanSeason,
+          results: {
+            standings: [{ teamId: 'ghosts' }],
+            playoffs: [],
+          },
+        },
+      },
+    };
+    expect(validateData(invalid).length).toBeGreaterThan(0);
+  });
+
   it('reports zero us teams', () => {
     const invalid = {
       ...validInput,
