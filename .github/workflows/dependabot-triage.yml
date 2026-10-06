@@ -36,16 +36,20 @@ jobs:
           OPENCODE_GO_API_KEY: ${{ secrets.OPENCODE_GO_API_KEY }}
         run: |
           mkdir -p "$HOME/.config/opencode"
-          cat > "$HOME/.config/opencode/opencode.jsonc" <<'EOF'
+          # The heredoc body is indented two spaces so YAML keeps it inside the
+          # run: | block; sed strips those two spaces before writing the file.
           {
-            "$schema": "https://opencode.ai/config.json",
-            "providers": {
-              "opencode-go": {
-                "env": ["OPENCODE_GO_API_KEY"]
+            sed 's/^  //' <<'EOF'
+            {
+              "$schema": "https://opencode.ai/config.json",
+              "providers": {
+                "opencode-go": {
+                  "env": ["OPENCODE_GO_API_KEY"]
+                }
               }
             }
-          }
           EOF
+          } > "$HOME/.config/opencode/opencode.jsonc"
 
       - name: Install OpenCode CLI
         run: |
@@ -101,7 +105,7 @@ jobs:
     if: github.actor == 'dependabot[bot]'
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write
       pull-requests: write
     steps:
       - name: Fetch Dependabot metadata
@@ -113,8 +117,8 @@ jobs:
       # Majors deliberately fall through: no auto-merge, human decides.
       - name: Enable auto-merge for minor/patch updates
         if: >-
-          needs.metadata.outputs.update-type == 'version-update:semver-minor' ||
-          needs.metadata.outputs.update-type == 'version-update:semver-patch'
+          steps.metadata.outputs.update-type == 'version-update:semver-minor' ||
+          steps.metadata.outputs.update-type == 'version-update:semver-patch'
         run: gh pr merge --auto --squash "$PR_NUMBER"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
