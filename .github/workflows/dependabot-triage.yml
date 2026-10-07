@@ -1,0 +1,125 @@
+name: Dependabot Triage
+
+# Runs only for Dependabot-opened PRs against main.
+# Two independent jobs: an AI risk summary comment, and auto-merge for
+# minor/patch updates only. Majors are left for a human to read the comment.
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  ai-triage:
+    name: ai-triage
+    if: github.actor == 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      # Full history is needed so we can diff the PR head against origin/main.
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      # Headless credential path for OpenCode Go: override the built-in
+      # opencode-go provider so it reads the API key from OPENCODE_GO_API_KEY.
+      # See https://opencode.ai/v2/docs/providers (provider env array) and
+      # https://opencode.ai/v2/docs/config (opencode.jsonc location/format).
+      - name: Write OpenCode provider config
+        env:
+          OPENCODE_GO_API_KEY: ${{ secrets.OPENCODE_GO_API_KEY }}
+        run: |
+          mkdir -p "$HOME/.config/opencode"
+          # The heredoc body is indented two spaces so YAML keeps it inside the
+          # run: | block; sed strips those two spaces before writing the file.
+          {
+            sed 's/^  //' <<'EOF'
+            {
+              "$schema": "https://opencode.ai/config.json",
+              "providers": {
+                "opencode-go": {
+                  "env": ["OPENCODE_GO_API_KEY"]
+                }
+              }
+            }
+          EOF
+          } > "$HOME/.config/opencode/opencode.jsonc"
+
+      - name: Install OpenCode CLI
+        run: |
+          curl -fsSL https://opencode.ai/v2/install | bash
+          echo "$HOME/.opencode/bin" >> "$GITHUB_PATH"
+
+      - name: Generate dependency risk summary
+        id: ai_summary
+        timeout-minutes: 5
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          OPENCODE_GO_API_KEY: ${{ secrets.OPENCODE_GO_API_KEY }}
+        run: |
+          set -euo pipefail
+
+          pr_number="${{ github.event.pull_request.number }}"
+
+          # Make sure origin/main is available for the diff.
+          git fetch origin main --quiet
+
+          gh pr view "$pr_number" \
+            --json number,title,body,author,url,additions,deletions,files > /tmp/pr.json
+
+          git diff origin/main...HEAD -- package.json package-lock.json > /tmp/diff.txt || true
+
+          summary=$(opencode run \
+            --auto \
+            --model opencode-go/gpt-6-luna \
+            --file /tmp/pr.json \
+            --file /tmp/diff.txt \
+            "Review the attached Dependabot dependency update PR for a Vite + React + TypeScript SPA.
+
+            The first attached file is PR metadata; the second is the dependency diff for package.json and package-lock.json.
+
+            Produce a concise risk summary suitable as a GitHub PR comment. Cover, in order:
+            1. What changed (which packages, which versions, prod vs dev dependencies).
+            2. Breaking-change and compatibility risk for this stack (Vite, React, MUI, testing libraries).
+            3. Security relevance if the PR addresses a CVE/GHSA.
+            4. Verdict: safe to merge / needs human review / hold.
+
+            Keep it under 250 words. Do not modify any files. Output only the comment body, no markdown code fences.")
+
+          printf '%s\n' "$summary" > /tmp/comment.txt
+
+      - name: Post triage comment
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr comment "${{ github.event.pull_request.number }}" --body-file /tmp/comment.txt
+
+  auto-merge:
+    name: auto-merge
+    if: github.actor == 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Fetch Dependabot metadata
+        id: metadata
+        uses: dependabot/fetch-metadata@v2
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      # Majors deliberately fall through: no auto-merge, human decides.
+      - name: Enable auto-merge for minor/patch updates
+        if: >-
+          steps.metadata.outputs.update-type == 'version-update:semver-minor' ||
+          steps.metadata.outputs.update-type == 'version-update:semver-patch'
+        run: gh pr merge --auto --squash "$PR_NUMBER"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}

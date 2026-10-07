@@ -1,0 +1,20 @@
+version: 2
+
+updates:
+  # npm: minor + patch land as one reviewable PR; majors stay ungrouped
+  # so they get individual PRs and AI triage.
+  - package-ecosystem: npm
+    directory: '/'
+    schedule:
+      interval: weekly
+    groups:
+      minor-patch:
+        update-types:
+          - minor
+          - patch
+
+  # Keep the pinned action majors in this repo current.
+  - package-ecosystem: github-actions
+    directory: '/'
+    schedule:
+      interval: weekly
