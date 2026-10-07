@@ -21,7 +21,7 @@ jobs:
     steps:
       # Full history is needed so we can diff the PR head against origin/main.
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
         with:
           ref: ${{ github.event.pull_request.head.sha }}
           fetch-depth: 0
