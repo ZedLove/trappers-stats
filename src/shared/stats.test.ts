@@ -351,4 +351,38 @@ describe('formatRate', () => {
   it('rounds 0.3475 up to .348 with half-up rounding', () => {
     expect(formatRate(0.3475)).toBe('.348');
   });
+
+  it('rounds exact-half 811/400 up to 2.028', () => {
+    expect(formatRate(811 / 400)).toBe('2.028');
+  });
+
+  it('rounds an exact-half slugging above 2 up via deriveStats', () => {
+    const stats = deriveStats(
+      sumLines([
+        line({
+          ab: 400,
+          '1b': 189,
+          '2b': 111,
+          '3b': 0,
+          hr: 100,
+          k: 0,
+        }),
+      ]),
+    );
+
+    expect(stats.slg).toBe(811 / 400);
+    expect(formatRate(stats.slg)).toBe('2.028');
+  });
+
+  it('formats 1.250 as 1.250', () => {
+    expect(formatRate(1.25)).toBe('1.250');
+  });
+
+  it('rounds 0.9995 up to 1.000', () => {
+    expect(formatRate(0.9995)).toBe('1.000');
+  });
+
+  it('rounds 0.0005 up to .001', () => {
+    expect(formatRate(0.0005)).toBe('.001');
+  });
 });

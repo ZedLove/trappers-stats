@@ -89,7 +89,8 @@ export function formatRate(value: number | null): string {
     return '—';
   }
 
-  const rounded = Math.round((value + Number.EPSILON) * 1000) / 1000;
+  const scaled = value * 1000 * (1 + 4 * Number.EPSILON);
+  const rounded = Math.round(scaled) / 1000;
   const fixed = rounded.toFixed(3);
   return rounded < 1 ? fixed.slice(1) : fixed;
 }
