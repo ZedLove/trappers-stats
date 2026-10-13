@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import App from './App';
 import NotFound from './pages/NotFound';
+import StatsPage from './pages/StatsPage';
 
 // Page placeholders are inline; later tasks replace them with real pages.
 const router = createBrowserRouter(
@@ -11,7 +12,7 @@ const router = createBrowserRouter(
       path: '/',
       element: <App />,
       children: [
-        { index: true, element: <div>Stats</div> },
+        { index: true, element: <StatsPage /> },
         { path: 'players/:playerId', element: <div>Player</div> },
         { path: 'games', element: <div>Games</div> },
         { path: 'games/:gameId', element: <div>Game</div> },
