@@ -1,0 +1,8 @@
+{
+  "teams": [
+    { "id": "trappers", "name": "Trappers", "us": true },
+    { "id": "hornets", "name": "Hornets" },
+    { "id": "bandits", "name": "Bandits" },
+    { "id": "wildcats", "name": "Wildcats" }
+  ]
+}

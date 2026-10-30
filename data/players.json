@@ -1,0 +1,10 @@
+{
+  "players": [
+    { "id": "z-man", "name": "Z-Man" },
+    { "id": "stretch", "name": "Stretch" },
+    { "id": "duke", "name": "Duke" },
+    { "id": "mike-s", "name": "Mike S." },
+    { "id": "big-cat", "name": "Big Cat" },
+    { "id": "jo-jo", "name": "Jo Jo" }
+  ]
+}
