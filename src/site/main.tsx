@@ -2,6 +2,7 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import App from './App';
+import GamesPage from './pages/GamesPage';
 import NotFound from './pages/NotFound';
 import PlayerPage from './pages/PlayerPage';
 import StatsPage from './pages/StatsPage';
@@ -15,7 +16,7 @@ const router = createBrowserRouter(
       children: [
         { index: true, element: <StatsPage /> },
         { path: 'players/:playerId', element: <PlayerPage /> },
-        { path: 'games', element: <div>Games</div> },
+        { path: 'games', element: <GamesPage /> },
         { path: 'games/:gameId', element: <div>Game</div> },
         { path: '*', element: <NotFound /> },
       ],

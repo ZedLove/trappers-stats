@@ -147,6 +147,15 @@ describe('SeasonPhaseControls', () => {
     expect(screen.getAllByRole('option').map((option) => option.textContent)).toEqual(['2026']);
   });
 
+  it('displays the latest season when showAllTime is false but the URL says season=all', () => {
+    render(
+      <MemoryRouter initialEntries={['/?season=all']}>
+        <SeasonPhaseControls showAllTime={false} />
+      </MemoryRouter>,
+    );
+    expect(screen.getByRole('combobox', { name: 'Season' })).toHaveTextContent('2026');
+  });
+
   it('writes phase changes to the URL', () => {
     render(
       <MemoryRouter>

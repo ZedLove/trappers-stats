@@ -1,5 +1,5 @@
 import { Box, FormControl, InputLabel, MenuItem, Select } from '@mui/material';
-import { seasons } from '../../shared/data';
+import { latestSeason, seasons } from '../../shared/data';
 import type { Phase } from '../../shared/schema';
 import { useSeasonFilter } from '../hooks/useSeasonFilter';
 
@@ -17,6 +17,13 @@ export interface SeasonPhaseControlsProps {
 export default function SeasonPhaseControls({ showAllTime = true }: SeasonPhaseControlsProps) {
   const { filter, setSeason, setPhase } = useSeasonFilter();
 
+  // With no All-time option, an 'all' filter would have no matching MenuItem;
+  // display the latest season instead (pages make the same fallback).
+  const displayedSeason =
+    !showAllTime && filter.season === 'all'
+      ? (latestSeason()?.season ?? filter.season)
+      : filter.season;
+
   return (
     <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
       <FormControl size="small" sx={{ minWidth: 140 }}>
@@ -24,7 +31,7 @@ export default function SeasonPhaseControls({ showAllTime = true }: SeasonPhaseC
         <Select
           labelId="season-select-label"
           label="Season"
-          value={String(filter.season)}
+          value={String(displayedSeason)}
           onChange={(event) =>
             setSeason(event.target.value === 'all' ? 'all' : Number(event.target.value))
           }
