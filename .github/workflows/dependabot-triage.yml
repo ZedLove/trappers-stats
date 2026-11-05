@@ -27,29 +27,14 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
-      # Headless credential path for OpenCode Go: override the built-in
-      # opencode-go provider so it reads the API key from OPENCODE_GO_API_KEY.
-      # See https://opencode.ai/v2/docs/providers (provider env array) and
-      # https://opencode.ai/v2/docs/config (opencode.jsonc location/format).
-      - name: Write OpenCode provider config
+      - name: Write OpenCode auth file
         env:
           OPENCODE_GO_API_KEY: ${{ secrets.OPENCODE_GO_API_KEY }}
         run: |
-          mkdir -p "$HOME/.config/opencode"
-          # The heredoc body is indented two spaces so YAML keeps it inside the
-          # run: | block; sed strips those two spaces before writing the file.
-          {
-            sed 's/^  //' <<'EOF'
-            {
-              "$schema": "https://opencode.ai/config.json",
-              "providers": {
-                "opencode-go": {
-                  "env": ["OPENCODE_GO_API_KEY"]
-                }
-              }
-            }
-          EOF
-          } > "$HOME/.config/opencode/opencode.jsonc"
+          mkdir -p "$HOME/.local/share/opencode"
+          printf '{"opencode-go":{"type":"api","key":"%s"}}\n' "$OPENCODE_GO_API_KEY" \
+            > "$HOME/.local/share/opencode/auth.json"
+          echo "Auth file written (key length: ${#OPENCODE_GO_API_KEY})"
 
       - name: Install OpenCode CLI
         run: |
