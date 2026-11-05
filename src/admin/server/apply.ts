@@ -30,6 +30,10 @@ export function suggestPlayerId(name: string, existingIds: string[]): string {
   return nextUniqueId(slugify(name), existingIds);
 }
 
+export function suggestTeamId(name: string, existingIds: string[]): string {
+  return nextUniqueId(slugify(name), existingIds);
+}
+
 export function suggestGameId(
   date: string,
   opponentId: string,
@@ -75,6 +79,9 @@ export function applyRenamePlayer(
 }
 
 export function applyAddTeam(teams: TeamsFile, team: Team): TeamsFile {
+  if (teams.teams.some((existing) => existing.id === team.id)) {
+    throw new Error(`Duplicate team id "${team.id}"`);
+  }
   if (teams.teams.some((existing) => existing.name === team.name)) {
     throw new Error(`Duplicate team name "${team.name}"`);
   }
