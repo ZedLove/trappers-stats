@@ -53,7 +53,12 @@ export default function LineupGrid({
       {fields.map((field, index) => (
         <Box
           key={field.id}
-          sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', alignItems: 'center' }}
+          sx={{
+            display: 'flex',
+            gap: 1,
+            alignItems: { xs: 'stretch', sm: 'center' },
+            flexDirection: { xs: 'column', sm: 'row' },
+          }}
         >
           <Controller
             control={control}
@@ -110,37 +115,39 @@ export default function LineupGrid({
               );
             }}
           />
-          {STAT_FIELDS.map(({ key, label }) => (
-            <Controller
-              key={key}
-              control={control}
-              name={`lines.${index}.${key}`}
-              render={({ field: statField, fieldState }) => (
-                <TextField
-                  type="number"
-                  size="small"
-                  label={label}
-                  sx={{ width: 64 }}
-                  value={statField.value}
-                  onChange={(event) =>
-                    statField.onChange(
-                      event.target.value === '' ? 0 : Number(event.target.value),
-                    )
-                  }
-                  onBlur={statField.onBlur}
-                  error={!!fieldState.error}
-                  helperText={fieldState.error?.message}
-                />
-              )}
-            />
-          ))}
-          <Button
-            size="small"
-            onClick={() => onRemove(index)}
-            disabled={fields.length <= 1}
-          >
-            Remove
-          </Button>
+          <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', alignItems: 'center' }}>
+            {STAT_FIELDS.map(({ key, label }) => (
+              <Controller
+                key={key}
+                control={control}
+                name={`lines.${index}.${key}`}
+                render={({ field: statField, fieldState }) => (
+                  <TextField
+                    type="number"
+                    size="small"
+                    label={label}
+                    sx={{ width: 64 }}
+                    value={statField.value}
+                    onChange={(event) =>
+                      statField.onChange(
+                        event.target.value === '' ? 0 : Number(event.target.value),
+                      )
+                    }
+                    onBlur={statField.onBlur}
+                    error={!!fieldState.error}
+                    helperText={fieldState.error?.message}
+                  />
+                )}
+              />
+            ))}
+            <Button
+              size="small"
+              onClick={() => onRemove(index)}
+              disabled={fields.length <= 1}
+            >
+              Remove
+            </Button>
+          </Box>
         </Box>
       ))}
       <Box>

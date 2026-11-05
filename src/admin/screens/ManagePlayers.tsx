@@ -95,7 +95,15 @@ export default function ManagePlayers() {
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, maxWidth: 560 }}>
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
         <Typography variant="subtitle1">Add player</Typography>
-        <Box sx={{ display: 'flex', gap: 2, alignItems: 'flex-end', flexWrap: 'wrap' }}>
+        <Box
+          sx={{
+            display: 'flex',
+            gap: 2,
+            alignItems: { xs: 'stretch', sm: 'flex-end' },
+            flexWrap: 'wrap',
+            flexDirection: { xs: 'column', sm: 'row' },
+          }}
+        >
           <TextField
             label="Name"
             size="small"

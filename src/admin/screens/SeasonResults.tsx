@@ -159,7 +159,13 @@ export default function SeasonResults() {
           standings.map((row, index) => (
             <Box
               key={index}
-              sx={{ display: 'flex', gap: 1, alignItems: 'center', flexWrap: 'wrap' }}
+              sx={{
+                display: 'flex',
+                gap: 1,
+                alignItems: { xs: 'stretch', sm: 'center' },
+                flexWrap: 'wrap',
+                flexDirection: { xs: 'column', sm: 'row' },
+              }}
             >
               <TextField
                 select
@@ -181,7 +187,7 @@ export default function SeasonResults() {
                 label="Wins"
                 type="number"
                 size="small"
-                sx={{ width: 88 }}
+                sx={{ width: { xs: '100%', sm: 88 } }}
                 value={row.wins ?? ''}
                 onChange={(event) => updateStanding(index, { wins: parseInteger(event.target.value) })}
                 slotProps={{ htmlInput: { min: 0 } }}
@@ -190,7 +196,7 @@ export default function SeasonResults() {
                 label="Losses"
                 type="number"
                 size="small"
-                sx={{ width: 88 }}
+                sx={{ width: { xs: '100%', sm: 88 } }}
                 value={row.losses ?? ''}
                 onChange={(event) =>
                   updateStanding(index, { losses: parseInteger(event.target.value) })
@@ -201,7 +207,7 @@ export default function SeasonResults() {
                 label="Ties"
                 type="number"
                 size="small"
-                sx={{ width: 88 }}
+                sx={{ width: { xs: '100%', sm: 88 } }}
                 value={row.ties ?? ''}
                 onChange={(event) => updateStanding(index, { ties: parseInteger(event.target.value) })}
                 slotProps={{ htmlInput: { min: 0 } }}
@@ -253,12 +259,18 @@ export default function SeasonResults() {
           playoffs.map((row, index) => (
             <Box
               key={index}
-              sx={{ display: 'flex', gap: 1, alignItems: 'center', flexWrap: 'wrap' }}
+              sx={{
+                display: 'flex',
+                gap: 1,
+                alignItems: { xs: 'stretch', sm: 'center' },
+                flexWrap: 'wrap',
+                flexDirection: { xs: 'column', sm: 'row' },
+              }}
             >
               <TextField
                 label="Round"
                 size="small"
-                sx={{ width: 140 }}
+                sx={{ width: { xs: '100%', sm: 140 } }}
                 value={row.round}
                 onChange={(event) => updateMatchup(index, { round: event.target.value })}
               />
@@ -266,7 +278,7 @@ export default function SeasonResults() {
                 select
                 label="Division"
                 size="small"
-                sx={{ width: 110 }}
+                sx={{ width: { xs: '100%', sm: 110 } }}
                 value={row.division ?? ''}
                 onChange={(event) =>
                   updateMatchup(index, {

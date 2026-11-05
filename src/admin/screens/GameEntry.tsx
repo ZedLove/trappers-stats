@@ -201,7 +201,15 @@ export default function GameEntry() {
       onSubmit={handleSubmit(onSubmit)}
       sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}
     >
-      <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', alignItems: 'flex-start' }}>
+      <Box
+        sx={{
+          display: 'flex',
+          gap: 2,
+          flexWrap: 'wrap',
+          alignItems: { xs: 'stretch', sm: 'flex-start' },
+          flexDirection: { xs: 'column', sm: 'row' },
+        }}
+      >
         <TextField
           select
           label="Season"
@@ -232,7 +240,7 @@ export default function GameEntry() {
             label="Season year"
             size="small"
             type="number"
-            sx={{ width: 120 }}
+            sx={{ width: { xs: '100%', sm: 120 } }}
             value={seasonInput}
             onChange={(event) => {
               setSeasonInput(event.target.value);
@@ -396,7 +404,7 @@ export default function GameEntry() {
               label="Our score"
               type="number"
               size="small"
-              sx={{ width: 100 }}
+              sx={{ width: { xs: '100%', sm: 100 } }}
               value={field.value}
               onChange={(event) =>
                 field.onChange(event.target.value === '' ? 0 : Number(event.target.value))
@@ -415,7 +423,7 @@ export default function GameEntry() {
               label="Their score"
               type="number"
               size="small"
-              sx={{ width: 100 }}
+              sx={{ width: { xs: '100%', sm: 100 } }}
               value={field.value}
               onChange={(event) =>
                 field.onChange(event.target.value === '' ? 0 : Number(event.target.value))
