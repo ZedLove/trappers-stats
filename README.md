@@ -1,75 +1,68 @@
-# React + TypeScript + Vite
+# Trappers Stats
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A static site for the Trappers slo-pitch team's season stats — rosters, game lines,
+standings, and playoff brackets. Built with React + TypeScript + Vite and Material UI,
+served from GitHub Pages.
 
-Currently, two official plugins are available:
+- **Public site:** https://zedlove.github.io/trappers-stats/
+- **Local admin:** https://zedlove.github.io/trappers-stats/admin.html (dev only — see below)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Data model
 
-## React Compiler
+All data lives as hand-editable JSON under [`data/`](data/):
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- `players.json` — the roster.
+- `teams.json` — our team plus every opponent.
+- `seasons/*.json` — one file per season (games, standings, playoff results).
 
-## Expanding the ESLint configuration
+The Zod schemas that define and validate every shape live in
+[`src/shared/schema.ts`](src/shared/schema.ts). They are parsed and cross-validated at
+build time by [`src/shared/data.ts`](src/shared/data.ts), so an invalid hand-edit fails
+`npm run build` with the full list of problems rather than shipping a broken site.
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-
+```jsonc
+// Example (identifiers are slugged, names are handles — never full names):
+{
+  "players": [{ "id": "z-man", "name": "Z-Man" }],
+  "teams": [
+    { "id": "trappers", "name": "Trappers", "us": true },
+    { "id": "hornets", "name": "Hornets" }
+  ]
+}
 ```
 
-You can also install [eslint-plugin-react-x](https://npmx.dev/package/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://npmx.dev/package/eslint-plugin-react-dom) for React-specific lint rules:
+## Admin (local only)
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+Stats entry happens through a small admin UI that is **never shipped** — the admin
+endpoints only exist in the Vite dev server, and the admin page is built for local use.
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```sh
+npm install
+npm run dev
+```
 
+Then open <http://localhost:5173/trappers-stats/admin.html>. It reads and writes the
+JSON files under `data/` through local-only `/__admin` endpoints (see
+[`src/admin/server/vite-plugin-admin.ts`](src/admin/server/vite-plugin-admin.ts)).
+
+## Deploy
+
+Deployment is fully automatic: pushing to `main` builds the site and publishes it to
+GitHub Pages via [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml). There
+is nothing to run locally.
+
+## Dependencies
+
+[Dependabot](.github/dependabot.yml) opens weekly update PRs, grouping minor + patch
+bumps into one reviewable PR and leaving majors ungrouped. A
+[triage workflow](.github/workflows/dependabot-triage.yml) posts an AI risk summary on
+each Dependabot PR and auto-merges minor/patch updates; majors are left for a human to
+read and merge.
+
+## Development
+
+```sh
+npm test        # unit + component tests (Vitest)
+npm run lint    # ESLint
+npm run build   # typecheck + production build (also validates data/)
 ```
