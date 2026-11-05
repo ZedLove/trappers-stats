@@ -107,7 +107,7 @@ export default function ManagePlayers() {
             size="small"
             value={suggestedId}
             slotProps={{ input: { readOnly: true } }}
-            helperText="Auto-suggested from name"
+            placeholder="Auto-generated"
           />
           <Button variant="contained" onClick={handleAdd} disabled={!name.trim()}>
             Add player

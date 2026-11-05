@@ -29,11 +29,11 @@ export default function StandingsTable({ standings }: StandingsTableProps) {
               const team = getTeam(standing.teamId);
               return (
                 <TableRow key={standing.teamId} selected={team?.us === true}>
-                  <TableCell align="right">{index + 1}</TableCell>
+                  <TableCell align="center">{index + 1}</TableCell>
                   <TableCell>{team?.name ?? standing.teamId}</TableCell>
-                  <TableCell align="right">{standing.wins ?? '—'}</TableCell>
-                  <TableCell align="right">{standing.losses ?? '—'}</TableCell>
-                  <TableCell align="right">{standing.ties ?? '—'}</TableCell>
+                  <TableCell align="center">{standing.wins ?? '—'}</TableCell>
+                  <TableCell align="center">{standing.losses ?? '—'}</TableCell>
+                  <TableCell align="center">{standing.ties ?? '—'}</TableCell>
                 </TableRow>
               );
             })}
