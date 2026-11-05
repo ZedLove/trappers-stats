@@ -44,6 +44,7 @@ jobs:
       - name: Generate dependency risk summary
         id: ai_summary
         timeout-minutes: 5
+        continue-on-error: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           OPENCODE_GO_API_KEY: ${{ secrets.OPENCODE_GO_API_KEY }}
@@ -63,7 +64,7 @@ jobs:
           summary=$(opencode run \
             --standalone \
             --auto \
-            --model opencode-go/gpt-6-luna \
+            --model opencode-go/glm-5.3-flash \
             --file /tmp/pr.json \
             --file /tmp/diff.txt \
             "Review the attached Dependabot dependency update PR for a Vite + React + TypeScript SPA.
@@ -81,10 +82,15 @@ jobs:
           printf '%s\n' "$summary" > /tmp/comment.txt
 
       - name: Post triage comment
+        if: steps.ai_summary.outcome == 'success'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh pr comment "${{ github.event.pull_request.number }}" --body-file /tmp/comment.txt
+          if [ -s /tmp/comment.txt ]; then
+            gh pr comment "${{ github.event.pull_request.number }}" --body-file /tmp/comment.txt
+          else
+            echo "Summary was empty — skipping comment"
+          fi
 
   auto-merge:
     name: auto-merge
@@ -94,6 +100,9 @@ jobs:
       contents: write
       pull-requests: write
     steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
       - name: Fetch Dependabot metadata
         id: metadata
         uses: dependabot/fetch-metadata@v2
