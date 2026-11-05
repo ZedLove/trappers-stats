@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Box, Link as MuiLink, TextField, Typography } from '@mui/material';
+import { Box, Link as MuiLink, TextField } from '@mui/material';
 import {
   DataGrid,
   type GridCellParams,
@@ -8,6 +8,7 @@ import {
 import { Link as RouterLink } from 'react-router-dom';
 import { getPlayer } from '../../shared/data';
 import { formatRate, type DerivedStats } from '../../shared/stats';
+import EmptyState from './EmptyState';
 
 export interface StatsGridProps {
   rows: Array<{ playerId: string; stats: DerivedStats }>;
@@ -188,7 +189,12 @@ export default function StatsGrid({ rows }: StatsGridProps) {
   }, [gridRows, query]);
 
   if (rows.length === 0) {
-    return <Typography color="text.secondary">No games entered yet</Typography>;
+    return (
+      <EmptyState
+        title="No games yet"
+        message="Stats will appear here once the first game is entered."
+      />
+    );
   }
 
   return (

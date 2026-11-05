@@ -114,7 +114,7 @@ describe('StatsGrid', () => {
 
   it('shows a friendly message for an empty season instead of crashing', () => {
     renderGrid([]);
-    expect(screen.getByText(/no games entered yet/i)).toBeInTheDocument();
+    expect(screen.getByText(/no games yet/i)).toBeInTheDocument();
   });
 
   it('emphasizes the best value in each column, including ties', () => {

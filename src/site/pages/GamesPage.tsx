@@ -16,7 +16,9 @@ import type { Game } from '../../shared/schema';
 import PlayoffResults from '../components/PlayoffResults';
 import SeasonPhaseControls from '../components/SeasonPhaseControls';
 import StandingsTable from '../components/StandingsTable';
+import EmptyState from '../components/EmptyState';
 import { useSeasonFilter } from '../hooks/useSeasonFilter';
+import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { PHASE_LABELS, phaseColor } from '../phase';
 import NotFound from './NotFound';
 
@@ -52,6 +54,7 @@ function resultColor(result: 'W' | 'L' | 'T'): 'success' | 'error' | 'default' {
 export default function GamesPage() {
   const { filter } = useSeasonFilter();
   const navigate = useNavigate();
+  useDocumentTitle('Games');
   // The season selector has no All-time option on this page, so an 'all'
   // filter (e.g. a pasted URL) falls back to the latest season.
   const seasonFile = filter.season === 'all' ? latestSeason() : getSeason(filter.season);
@@ -89,7 +92,10 @@ export default function GamesPage() {
       {standings.length > 0 && <StandingsTable standings={standings} />}
       {playoffs.length > 0 && <PlayoffResults playoffs={playoffs} />}
       {games.length === 0 ? (
-        <Typography color="text.secondary">No games entered yet</Typography>
+        <EmptyState
+          title="No games yet"
+          message="Games will appear here once the season gets going."
+        />
       ) : (
         <Table aria-label="Games" size="small">
           <TableHead>
@@ -98,7 +104,7 @@ export default function GamesPage() {
               <TableCell>Opponent</TableCell>
               <TableCell>Phase</TableCell>
               <TableCell>Result</TableCell>
-              <TableCell>Score</TableCell>
+              <TableCell align="right">Score</TableCell>
               <TableCell>Location</TableCell>
             </TableRow>
           </TableHead>
@@ -130,7 +136,7 @@ export default function GamesPage() {
                   <TableCell>
                     <Chip label={result} size="small" color={resultColor(result)} />
                   </TableCell>
-                  <TableCell>
+                  <TableCell align="right">
                     {game.score.us}-{game.score.them}
                   </TableCell>
                   <TableCell>{getLocation(game.locationId)?.name ?? '—'}</TableCell>

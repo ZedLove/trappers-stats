@@ -16,11 +16,11 @@ export default function StandingsTable({ standings }: StandingsTableProps) {
       <Table aria-label="Standings" size="small">
         <TableHead>
           <TableRow>
-            <TableCell>#</TableCell>
+            <TableCell align="right">#</TableCell>
             <TableCell>Team</TableCell>
-            <TableCell>W</TableCell>
-            <TableCell>L</TableCell>
-            <TableCell>T</TableCell>
+            <TableCell align="right">W</TableCell>
+            <TableCell align="right">L</TableCell>
+            <TableCell align="right">T</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
@@ -28,11 +28,11 @@ export default function StandingsTable({ standings }: StandingsTableProps) {
             const team = getTeam(standing.teamId);
             return (
               <TableRow key={standing.teamId} selected={team?.us === true}>
-                <TableCell>{index + 1}</TableCell>
+                <TableCell align="right">{index + 1}</TableCell>
                 <TableCell>{team?.name ?? standing.teamId}</TableCell>
-                <TableCell>{standing.wins ?? '—'}</TableCell>
-                <TableCell>{standing.losses ?? '—'}</TableCell>
-                <TableCell>{standing.ties ?? '—'}</TableCell>
+                <TableCell align="right">{standing.wins ?? '—'}</TableCell>
+                <TableCell align="right">{standing.losses ?? '—'}</TableCell>
+                <TableCell align="right">{standing.ties ?? '—'}</TableCell>
               </TableRow>
             );
           })}

@@ -4,10 +4,12 @@ import { leaderboard } from '../../shared/queries';
 import SeasonPhaseControls from '../components/SeasonPhaseControls';
 import StatsGrid from '../components/StatsGrid';
 import { useSeasonFilter } from '../hooks/useSeasonFilter';
+import { useDocumentTitle } from '../hooks/useDocumentTitle';
 
 export default function StatsPage() {
   const { filter } = useSeasonFilter();
   const rows = leaderboard(seasons, filter);
+  useDocumentTitle('Stats');
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>

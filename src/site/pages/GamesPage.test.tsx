@@ -143,7 +143,7 @@ describe('GamesPage', () => {
 
   it('shows an empty-state message instead of the list for a season with no games', () => {
     renderPage('/games?season=2024');
-    expect(screen.getByText(/no games entered yet/i)).toBeInTheDocument();
+    expect(screen.getByText(/no games yet/i)).toBeInTheDocument();
     expect(screen.queryByRole('table', { name: 'Games' })).not.toBeInTheDocument();
   });
 
