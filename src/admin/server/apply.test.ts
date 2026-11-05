@@ -7,7 +7,7 @@ import type {
   SeasonResults,
   Team,
   TeamsFile,
-} from '../../shared/schema';
+} from '../../shared/schema.js';
 import {
   applyAddPlayer,
   applyAddTeam,
@@ -19,7 +19,7 @@ import {
   slugify,
   suggestGameId,
   suggestPlayerId,
-} from './apply';
+} from './apply.js';
 
 function makePlayer(overrides: Partial<Player> = {}): Player {
   return { id: 'p-anna', name: 'Anna', ...overrides };
