@@ -5,6 +5,7 @@ import App from './App';
 import GamesPage from './pages/GamesPage';
 import NotFound from './pages/NotFound';
 import PlayerPage from './pages/PlayerPage';
+import BoxScorePage from './pages/BoxScorePage';
 import StatsPage from './pages/StatsPage';
 
 // Page placeholders are inline; later tasks replace them with real pages.
@@ -17,7 +18,7 @@ const router = createBrowserRouter(
         { index: true, element: <StatsPage /> },
         { path: 'players/:playerId', element: <PlayerPage /> },
         { path: 'games', element: <GamesPage /> },
-        { path: 'games/:gameId', element: <div>Game</div> },
+        { path: 'games/:gameId', element: <BoxScorePage /> },
         { path: '*', element: <NotFound /> },
       ],
     },
