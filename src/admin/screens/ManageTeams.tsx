@@ -10,7 +10,7 @@ import {
 } from '@mui/material';
 import { useEffect, useState } from 'react';
 import type { Team } from '../../shared/schema';
-import { slugify } from '../server/apply.js';
+import { suggestTeamId } from '../server/apply.js';
 import { getState, renameTeam, saveTeam, type AdminState } from '../api';
 
 export default function ManageTeams() {
@@ -38,13 +38,13 @@ export default function ManageTeams() {
   }, []);
 
   const teams = state?.teams.teams ?? [];
-  const suggestedId = name.trim() ? slugify(name) : '';
+  const suggestedId = name.trim() ? suggestTeamId(name, teams.map((t) => t.id)) : '';
 
   async function handleAdd() {
     const trimmed = name.trim();
     if (!trimmed) return;
     setAddError(null);
-    const team: Team = { id: slugify(trimmed), name: trimmed };
+    const team: Team = { id: suggestTeamId(trimmed, teams.map((t) => t.id)), name: trimmed };
     try {
       await saveTeam(team);
       setState((prev) =>

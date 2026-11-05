@@ -19,6 +19,7 @@ import {
   slugify,
   suggestGameId,
   suggestPlayerId,
+  suggestTeamId,
 } from './apply.js';
 
 function makePlayer(overrides: Partial<Player> = {}): Player {
@@ -88,6 +89,20 @@ describe('suggestPlayerId', () => {
 
   it('continues the sequence past -3', () => {
     expect(suggestPlayerId('Mike S.', ['mike-s', 'mike-s-2', 'mike-s-3'])).toBe('mike-s-4');
+  });
+});
+
+describe('suggestTeamId', () => {
+  it('slugifies a name with no collision', () => {
+    expect(suggestTeamId('Bears', [])).toBe('bears');
+  });
+
+  it('appends -2 on the first collision', () => {
+    expect(suggestTeamId('Bears', ['bears'])).toBe('bears-2');
+  });
+
+  it('skips taken suffixes', () => {
+    expect(suggestTeamId('Bears', ['bears', 'bears-2'])).toBe('bears-3');
   });
 });
 
@@ -233,6 +248,14 @@ describe('applyAddTeam', () => {
 
     expect(() => applyAddTeam(teams, makeTeam({ id: 't-2', name: 'Bears' }))).toThrow(
       'Duplicate team name',
+    );
+  });
+
+  it('throws on a duplicate team id even when the name differs', () => {
+    const teams: TeamsFile = { teams: [makeTeam({ id: 't-bears', name: 'Bears' })] };
+
+    expect(() => applyAddTeam(teams, makeTeam({ id: 't-bears', name: 'Wolves' }))).toThrow(
+      'Duplicate team id',
     );
   });
 });
