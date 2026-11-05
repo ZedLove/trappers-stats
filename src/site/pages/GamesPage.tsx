@@ -5,6 +5,7 @@ import {
   Table,
   TableBody,
   TableCell,
+  TableContainer,
   TableHead,
   TableRow,
   Typography,
@@ -97,54 +98,56 @@ export default function GamesPage() {
           message="Games will appear here once the season gets going."
         />
       ) : (
-        <Table aria-label="Games" size="small">
-          <TableHead>
-            <TableRow>
-              <TableCell>Date</TableCell>
-              <TableCell>Opponent</TableCell>
-              <TableCell>Phase</TableCell>
-              <TableCell>Result</TableCell>
-              <TableCell align="center">Score</TableCell>
-              <TableCell>Location</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {games.map((game) => {
-              const result = gameResult(game);
-              const opponentName = getTeam(game.opponentId)?.name ?? game.opponentId;
-              return (
-                <TableRow
-                  key={game.id}
-                  hover
-                  onClick={() => navigate(`/games/${game.id}`)}
-                  sx={{ cursor: 'pointer', '&:last-child td, &:last-child th': { border: 0 } }}
-                >
-                  <TableCell>{game.date}</TableCell>
-                  <TableCell>
-                    <MuiLink
-                      component={RouterLink}
-                      to={`/games/${game.id}`}
-                      onClick={(event) => event.stopPropagation()}
-                      color="secondary"
-                    >
-                      {opponentName}
-                    </MuiLink>
-                  </TableCell>
-                  <TableCell>
-                    <Chip label={PHASE_LABELS[game.phase]} size="small" color={phaseColor(game.phase)} />
-                  </TableCell>
-                  <TableCell>
-                    <Chip label={result} size="small" color={resultColor(result)} />
-                  </TableCell>
-                  <TableCell align="right">
-                    {game.score.us}-{game.score.them}
-                  </TableCell>
-                  <TableCell>{getLocation(game.locationId)?.name ?? '—'}</TableCell>
-                </TableRow>
-              );
-            })}
-          </TableBody>
-        </Table>
+        <TableContainer>
+          <Table aria-label="Games" size="small">
+            <TableHead>
+              <TableRow>
+                <TableCell>Date</TableCell>
+                <TableCell>Opponent</TableCell>
+                <TableCell>Phase</TableCell>
+                <TableCell>Result</TableCell>
+                <TableCell align="center">Score</TableCell>
+                <TableCell>Location</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {games.map((game) => {
+                const result = gameResult(game);
+                const opponentName = getTeam(game.opponentId)?.name ?? game.opponentId;
+                return (
+                  <TableRow
+                    key={game.id}
+                    hover
+                    onClick={() => navigate(`/games/${game.id}`)}
+                    sx={{ cursor: 'pointer', '&:last-child td, &:last-child th': { border: 0 } }}
+                  >
+                    <TableCell>{game.date}</TableCell>
+                    <TableCell>
+                      <MuiLink
+                        component={RouterLink}
+                        to={`/games/${game.id}`}
+                        onClick={(event) => event.stopPropagation()}
+                        color="secondary"
+                      >
+                        {opponentName}
+                      </MuiLink>
+                    </TableCell>
+                    <TableCell>
+                      <Chip label={PHASE_LABELS[game.phase]} size="small" color={phaseColor(game.phase)} />
+                    </TableCell>
+                    <TableCell>
+                      <Chip label={result} size="small" color={resultColor(result)} />
+                    </TableCell>
+                    <TableCell align="right">
+                      {game.score.us}-{game.score.them}
+                    </TableCell>
+                    <TableCell>{getLocation(game.locationId)?.name ?? '—'}</TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </TableContainer>
       )}
     </Box>
   );
