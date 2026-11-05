@@ -12,6 +12,12 @@ updates:
         update-types:
           - minor
           - patch
+    # Hold TypeScript at 6.x until typescript-eslint supports 7.x
+    # (8.x currently declares a peer range excluding TS 7). Remove or
+    # relax this ignore when we're ready to upgrade.
+    ignore:
+      - dependency-name: 'typescript'
+        versions: ['>=7']
 
   # Keep the pinned action majors in this repo current.
   - package-ecosystem: github-actions
