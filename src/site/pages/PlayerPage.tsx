@@ -12,15 +12,10 @@ import {
 import { Link as RouterLink, useParams } from 'react-router-dom';
 import { getPlayer, getTeam, seasons } from '../../shared/data';
 import { playerGameLog, playerStatsBySeason } from '../../shared/queries';
-import type { Phase, PlayerLine } from '../../shared/schema';
+import type { PlayerLine } from '../../shared/schema';
 import { deriveStats, formatRate, sumLines, type DerivedStats } from '../../shared/stats';
+import { PHASE_LABELS, phaseColor } from '../phase';
 import NotFound from './NotFound';
-
-const PHASE_LABELS: Record<Phase, string> = {
-  regular: 'Regular Season',
-  round_robin: 'Round Robin',
-  playoff: 'Playoffs',
-};
 
 const STAT_HEADERS = [
   'G',
@@ -160,12 +155,12 @@ export default function PlayerPage() {
             <TableRow key={game.id}>
               <TableCell>{game.date}</TableCell>
               <TableCell>
-                <MuiLink component={RouterLink} to={`/games/${game.id}`}>
+                <MuiLink component={RouterLink} to={`/games/${game.id}`} color="secondary">
                   {getTeam(game.opponentId)?.name ?? game.opponentId}
                 </MuiLink>
               </TableCell>
               <TableCell>
-                <Chip label={PHASE_LABELS[game.phase]} size="small" />
+                <Chip label={PHASE_LABELS[game.phase]} size="small" color={phaseColor(game.phase)} />
               </TableCell>
               <TableCell>{line.ab}</TableCell>
               <TableCell>{hitCount(line)}</TableCell>

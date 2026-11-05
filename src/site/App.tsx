@@ -1,18 +1,28 @@
-import { AppBar, Box, Button, IconButton, Toolbar, Typography } from '@mui/material';
+import { AppBar, Box, Button, IconButton, Toolbar, Typography, useTheme } from '@mui/material';
 import { BarChart3, CalendarDays, Moon, Sun } from 'lucide-react';
 import { Link, NavLink, Outlet } from 'react-router-dom';
 import SiteBreadcrumbs from './components/SiteBreadcrumbs';
 import { useThemeMode } from './themeMode';
 import logo from './trappers.png';
 
-const navLinkSx = {
-  color: 'inherit',
-  '&.active': { fontWeight: 'bold', textDecoration: 'underline' },
-};
-
 export default function App() {
   const { mode, toggle } = useThemeMode();
+  const theme = useTheme();
   const isDark = mode === 'dark';
+
+  // Active nav gets a teal underline/color so the current tab reads clearly
+  // against the navy AppBar in both light and dark mode.
+  const navLinkSx = {
+    color: 'inherit',
+    '&.active': {
+      fontWeight: 'bold',
+      color: theme.palette.secondary.main,
+      textDecoration: 'underline',
+      textDecorationColor: theme.palette.secondary.main,
+      textDecorationThickness: '2px',
+      textUnderlineOffset: '4px',
+    },
+  };
 
   return (
     <>

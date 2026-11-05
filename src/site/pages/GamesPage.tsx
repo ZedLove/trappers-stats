@@ -12,18 +12,13 @@ import {
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import { getLocation, getSeason, getTeam, latestSeason } from '../../shared/data';
 import { filterGames, sortGamesByDate, teamRecord } from '../../shared/queries';
-import type { Game, Phase } from '../../shared/schema';
+import type { Game } from '../../shared/schema';
 import PlayoffResults from '../components/PlayoffResults';
 import SeasonPhaseControls from '../components/SeasonPhaseControls';
 import StandingsTable from '../components/StandingsTable';
 import { useSeasonFilter } from '../hooks/useSeasonFilter';
+import { PHASE_LABELS, phaseColor } from '../phase';
 import NotFound from './NotFound';
-
-const PHASE_LABELS: Record<Phase, string> = {
-  regular: 'Regular Season',
-  round_robin: 'Round Robin',
-  playoff: 'Playoffs',
-};
 
 function ordinal(place: number): string {
   const rem100 = place % 100;
@@ -124,12 +119,13 @@ export default function GamesPage() {
                       component={RouterLink}
                       to={`/games/${game.id}`}
                       onClick={(event) => event.stopPropagation()}
+                      color="secondary"
                     >
                       {opponentName}
                     </MuiLink>
                   </TableCell>
                   <TableCell>
-                    <Chip label={PHASE_LABELS[game.phase]} size="small" />
+                    <Chip label={PHASE_LABELS[game.phase]} size="small" color={phaseColor(game.phase)} />
                   </TableCell>
                   <TableCell>
                     <Chip label={result} size="small" color={resultColor(result)} />

@@ -29,7 +29,7 @@ const columns: GridColDef[] = [
     flex: 1,
     minWidth: 140,
     renderCell: (params) => (
-      <MuiLink component={RouterLink} to={`/players/${params.row.playerId}`}>
+      <MuiLink component={RouterLink} to={`/players/${params.row.playerId}`} color="secondary">
         {params.value}
       </MuiLink>
     ),
@@ -70,6 +70,9 @@ export default function StatsGrid({ rows }: StatsGridProps) {
       rows={gridRows}
       columns={columns}
       getRowId={(row) => row.playerId}
+      getRowClassName={(params) =>
+        params.indexRelativeToCurrentPage % 2 === 1 ? 'MuiDataGrid-row--striped' : ''
+      }
       autoHeight
       hideFooter
       disableRowSelectionOnClick
