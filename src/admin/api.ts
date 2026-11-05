@@ -3,6 +3,7 @@ import type {
   Player,
   PlayersFile,
   SeasonFile,
+  SeasonResults,
   Team,
   TeamsFile,
 } from '../shared/schema';
@@ -70,5 +71,12 @@ export function renameTeam(id: string, name: string): Promise<TeamsFile> {
   return request<TeamsFile>('/rename-team', {
     method: 'POST',
     body: JSON.stringify({ id, name }),
+  });
+}
+
+export function saveResults(season: number, results: SeasonResults): Promise<SeasonFile> {
+  return request<SeasonFile>('/save-results', {
+    method: 'POST',
+    body: JSON.stringify({ season, results }),
   });
 }
