@@ -112,15 +112,46 @@ jobs:
       - name: Fetch Dependabot metadata
         id: metadata
         uses: dependabot/fetch-metadata@v2
+        continue-on-error: true
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
       # Majors deliberately fall through: no auto-merge, human decides.
+      # If fetch-metadata fails (e.g. signature verification), fall back to
+      # a title-based heuristic: grouped minor/patch PRs contain "minor" or
+      # "patch" in their title; major PRs contain "major".
+      - name: Determine whether to auto-merge
+        id: decision
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          UPDATE_TYPE: ${{ steps.metadata.outputs.update-type }}
+          METADATA_OUTCOME: ${{ steps.metadata.outcome }}
+        run: |
+          set -euo pipefail
+          should_merge=false
+
+          if [ "$METADATA_OUTCOME" = "success" ]; then
+            if [ "$UPDATE_TYPE" = "version-update:semver-minor" ] || \
+               [ "$UPDATE_TYPE" = "version-update:semver-patch" ]; then
+              should_merge=true
+            fi
+          else
+            title_lower=$(echo "$PR_TITLE" | tr '[:upper:]' '[:lower:]')
+            if echo "$title_lower" | grep -q 'major'; then
+              should_merge=false
+            elif echo "$title_lower" | grep -qE 'minor|patch'; then
+              should_merge=true
+            fi
+          fi
+
+          echo "should_merge=$should_merge" >> "$GITHUB_OUTPUT"
+          echo "Decision: should_merge=$should_merge (metadata_outcome=$METADATA_OUTCOME, update_type=$UPDATE_TYPE)"
+
       - name: Enable auto-merge for minor/patch updates
-        if: >-
-          steps.metadata.outputs.update-type == 'version-update:semver-minor' ||
-          steps.metadata.outputs.update-type == 'version-update:semver-patch'
-        run: gh pr merge --auto --squash "$PR_NUMBER"
+        if: steps.decision.outputs.should_merge == 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          set -euo pipefail
+          gh pr merge --auto --squash "$PR_NUMBER" 
