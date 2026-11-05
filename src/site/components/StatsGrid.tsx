@@ -1,10 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Box, Link as MuiLink, TextField } from '@mui/material';
-import {
-  DataGrid,
-  type GridCellParams,
-  type GridColDef,
-} from '@mui/x-data-grid';
+import { DataGrid, type GridColDef } from '@mui/x-data-grid';
 import { Link as RouterLink } from 'react-router-dom';
 import { getPlayer } from '../../shared/data';
 import { formatRate, type DerivedStats } from '../../shared/stats';
@@ -21,25 +17,22 @@ const RATE_FIELDS = new Set(['avg', 'obp', 'slg', 'ops']);
 // Columns that start a new stat group; a vertical divider is drawn to their left.
 const GROUP_SEP_FIELDS = new Set(['r', 'bb', 'avg']);
 
-const NUMERIC_FIELDS = [
-  'g',
-  'pa',
-  'ab',
-  'r',
-  'h',
-  'singles',
-  'doubles',
-  'triples',
-  'hr',
-  'bb',
-  'k',
-  'avg',
-  'obp',
-  'slg',
-  'ops',
-] as const;
-
-type NumericField = (typeof NUMERIC_FIELDS)[number];
+type NumericField =
+  | 'g'
+  | 'pa'
+  | 'ab'
+  | 'r'
+  | 'h'
+  | 'singles'
+  | 'doubles'
+  | 'triples'
+  | 'hr'
+  | 'bb'
+  | 'k'
+  | 'avg'
+  | 'obp'
+  | 'slg'
+  | 'ops';
 
 interface ColumnSpec {
   field: NumericField;
@@ -86,44 +79,16 @@ const COLUMN_SPECS: ColumnSpec[] = [
   { field: 'ops', headerName: 'OPS', description: 'On-base plus slugging', rate: true },
 ];
 
-// Best value per numeric column, or null when a column has no eligible value
-// (e.g. every player's AVG is null because nobody has an at-bat yet).
-function computeLeaders(rows: Row[]): Record<NumericField, number | null> {
-  const leaders = Object.fromEntries(
-    NUMERIC_FIELDS.map((field) => [field, null]),
-  ) as Record<NumericField, number | null>;
-
-  for (const row of rows) {
-    for (const field of NUMERIC_FIELDS) {
-      const value = row[field];
-      if (value === null || value === undefined) {
-        continue;
-      }
-      const current = leaders[field];
-      if (current === null || value > current) {
-        leaders[field] = value;
-      }
-    }
-  }
-
-  return leaders;
-}
-
-function buildColumns(leaders: Record<NumericField, number | null>): GridColDef[] {
+function buildColumns(): GridColDef[] {
   const cellClass =
     (field: NumericField): GridColDef['cellClassName'] =>
-    (params: GridCellParams) => {
+    () => {
       const classes: string[] = [];
       if (GROUP_SEP_FIELDS.has(field)) {
         classes.push('colgroup-sep');
       }
       if (RATE_FIELDS.has(field)) {
         classes.push('rate-stat');
-      }
-      // `===` on floats is fine here: ties are produced by identical inputs and
-      // therefore identical double values, so every co-leader matches.
-      if (leaders[field] !== null && params.value === leaders[field]) {
-        classes.push('leader');
       }
       return classes.join(' ');
     };
@@ -136,7 +101,7 @@ function buildColumns(leaders: Record<NumericField, number | null>): GridColDef[
       type: 'number',
       width: rate ? 76 : 56,
       align: 'right',
-      headerAlign: 'right',
+      headerAlign: 'center',
       headerClassName: GROUP_SEP_FIELDS.has(field) ? 'colgroup-sep' : undefined,
       cellClassName: cellClass(field),
       ...(rate ? { valueFormatter: (value: number | null) => formatRate(value) } : {}),
@@ -175,10 +140,7 @@ export default function StatsGrid({ rows }: StatsGridProps) {
     [rows],
   );
 
-  // Leaders are computed over the full leaderboard, not the search-filtered
-  // subset, so the highlighted cell is always the true season/phase leader.
-  const leaders = useMemo(() => computeLeaders(gridRows), [gridRows]);
-  const columns = useMemo(() => buildColumns(leaders), [leaders]);
+  const columns = useMemo(() => buildColumns(), []);
 
   const visibleRows = useMemo(() => {
     const q = query.trim().toLowerCase();

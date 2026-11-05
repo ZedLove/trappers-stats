@@ -58,7 +58,7 @@ export default function App() {
         <Outlet />
         <Box component="footer" sx={{ mt: 4, py: 2, textAlign: 'center' }}>
           <Typography variant="caption" color="text.secondary">
-            Trappers
+            © 2026 Tri-City Trappers Slo-Pitch Club
           </Typography>
         </Box>
       </Box>
