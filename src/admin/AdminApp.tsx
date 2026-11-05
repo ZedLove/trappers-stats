@@ -1,13 +1,15 @@
 import { useState } from 'react';
 import { AppBar, Box, CssBaseline, Tab, Tabs, Toolbar, Typography } from '@mui/material';
 import GameEntry from './screens/GameEntry';
+import ManagePlayers from './screens/ManagePlayers';
+import ManageTeams from './screens/ManageTeams';
 
 type ScreenId = 'game' | 'players' | 'teams' | 'results';
 
 const screens: Array<{ id: ScreenId; label: string; placeholder: string }> = [
   { id: 'game', label: 'Game Entry', placeholder: '' },
-  { id: 'players', label: 'Players', placeholder: 'Player management — coming in a later task.' },
-  { id: 'teams', label: 'Teams', placeholder: 'Team management — coming in a later task.' },
+  { id: 'players', label: 'Players', placeholder: '' },
+  { id: 'teams', label: 'Teams', placeholder: '' },
   {
     id: 'results',
     label: 'Season Results',
@@ -45,6 +47,10 @@ export default function AdminApp() {
       <Box component="main" sx={{ p: 2 }}>
         {screen === 'game' ? (
           <GameEntry />
+        ) : screen === 'players' ? (
+          <ManagePlayers />
+        ) : screen === 'teams' ? (
+          <ManageTeams />
         ) : (
           <>
             <Typography variant="h5" component="h1">

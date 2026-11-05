@@ -58,3 +58,17 @@ export function saveTeam(team: Team): Promise<TeamsFile> {
     body: JSON.stringify({ team }),
   });
 }
+
+export function renamePlayer(id: string, name: string): Promise<PlayersFile> {
+  return request<PlayersFile>('/rename-player', {
+    method: 'POST',
+    body: JSON.stringify({ id, name }),
+  });
+}
+
+export function renameTeam(id: string, name: string): Promise<TeamsFile> {
+  return request<TeamsFile>('/rename-team', {
+    method: 'POST',
+    body: JSON.stringify({ id, name }),
+  });
+}
