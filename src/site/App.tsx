@@ -2,7 +2,7 @@ import { AppBar, Box, Button, IconButton, Toolbar, Typography, useTheme } from '
 import { BarChart3, CalendarDays, Moon, Sun } from 'lucide-react';
 import { Link, NavLink, Outlet } from 'react-router-dom';
 import SiteBreadcrumbs from './components/SiteBreadcrumbs';
-import { useThemeMode } from './themeMode';
+import { useThemeMode } from '../theme/themeMode';
 import logo from './trappers.png';
 
 export default function App() {

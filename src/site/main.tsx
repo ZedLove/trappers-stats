@@ -7,7 +7,7 @@ import NotFound from './pages/NotFound';
 import PlayerPage from './pages/PlayerPage';
 import BoxScorePage from './pages/BoxScorePage';
 import StatsPage from './pages/StatsPage';
-import { ThemeModeProvider } from './ThemeModeProvider';
+import { ThemeModeProvider } from '../theme/ThemeModeProvider';
 
 // Page placeholders are inline; later tasks replace them with real pages.
 const router = createBrowserRouter(

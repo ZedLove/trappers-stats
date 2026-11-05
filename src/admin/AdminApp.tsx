@@ -1,5 +1,7 @@
 import { useState } from 'react';
-import { AppBar, Box, CssBaseline, Tab, Tabs, Toolbar, Typography } from '@mui/material';
+import { AppBar, Box, IconButton, Tab, Tabs, Toolbar, Typography } from '@mui/material';
+import { Moon, Sun } from 'lucide-react';
+import { useThemeMode } from '../theme/themeMode';
 import GameEntry from './screens/GameEntry';
 import ManageLocations from './screens/ManageLocations';
 import ManagePlayers from './screens/ManagePlayers';
@@ -18,15 +20,19 @@ const screens: Array<{ id: ScreenId; label: string }> = [
 
 export default function AdminApp() {
   const [screen, setScreen] = useState<ScreenId>('game');
+  const { mode, toggle } = useThemeMode();
+  const isDark = mode === 'dark';
 
   return (
     <>
-      <CssBaseline />
       <AppBar position="static">
         <Toolbar>
           <Typography variant="h6" sx={{ flexGrow: 1 }}>
             Trappers Admin
           </Typography>
+          <IconButton color="inherit" onClick={toggle} aria-label="Toggle theme" aria-pressed={isDark}>
+            {isDark ? <Sun size={22} /> : <Moon size={22} />}
+          </IconButton>
         </Toolbar>
         <Tabs
           value={screen}
