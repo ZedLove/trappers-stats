@@ -7,6 +7,7 @@ import NotFound from './pages/NotFound';
 import PlayerPage from './pages/PlayerPage';
 import BoxScorePage from './pages/BoxScorePage';
 import StatsPage from './pages/StatsPage';
+import { ThemeModeProvider } from './ThemeModeProvider';
 
 // Page placeholders are inline; later tasks replace them with real pages.
 const router = createBrowserRouter(
@@ -28,6 +29,8 @@ const router = createBrowserRouter(
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <RouterProvider router={router} />
+    <ThemeModeProvider>
+      <RouterProvider router={router} />
+    </ThemeModeProvider>
   </StrictMode>,
 );
