@@ -1,8 +1,8 @@
 // @vitest-environment jsdom
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { ThemeModeProvider } from './ThemeModeProvider';
-import { useThemeMode } from './themeMode';
+import { ThemeModeProvider } from '../theme/ThemeModeProvider';
+import { useThemeMode } from '../theme/themeMode';
 
 function ThemeToggleHarness() {
   const { mode, toggle } = useThemeMode();
