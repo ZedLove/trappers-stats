@@ -11,10 +11,13 @@ import {
 } from '@mui/material';
 import { useParams } from 'react-router-dom';
 import { Link as RouterLink } from 'react-router-dom';
+import { CircleOff } from 'lucide-react';
 import { getLocation, getPlayer, getTeam, seasons } from '../../shared/data';
 import { gameWarnings } from '../../shared/validate';
 import type { Game } from '../../shared/schema';
 import { PHASE_LABELS, phaseColor } from '../phase';
+import EmptyState from '../components/EmptyState';
+import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import NotFound from './NotFound';
 
 function gameResult(game: Game): 'W' | 'L' | 'T' {
@@ -35,6 +38,7 @@ function hitCount(line: { '1b': number; '2b': number; '3b': number; hr: number }
 
 export default function BoxScorePage() {
   const { gameId } = useParams<{ gameId: string }>();
+  useDocumentTitle('Box Score');
 
   const found = seasons
     .flatMap((season) => season.games.map((game) => ({ season: season.season, game })))
@@ -72,47 +76,55 @@ export default function BoxScorePage() {
         <Chip label={result} size="small" color={resultColor(result)} />
       </Box>
 
-      <Table aria-label="Box score" size="small">
-        <TableHead>
-          <TableRow>
-            <TableCell>Player</TableCell>
-            <TableCell>AB</TableCell>
-            <TableCell>H</TableCell>
-            <TableCell>1B</TableCell>
-            <TableCell>2B</TableCell>
-            <TableCell>3B</TableCell>
-            <TableCell>HR</TableCell>
-            <TableCell>BB</TableCell>
-            <TableCell>SF</TableCell>
-            <TableCell>K</TableCell>
-            <TableCell>R</TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {game.lines.map((line) => {
-            const player = getPlayer(line.playerId);
-            return (
-              <TableRow key={line.playerId}>
-                <TableCell>
-                  <MuiLink component={RouterLink} to={`/players/${line.playerId}`} color="secondary">
-                    {player?.name ?? line.playerId}
-                  </MuiLink>
-                </TableCell>
-                <TableCell>{line.ab}</TableCell>
-                <TableCell>{hitCount(line)}</TableCell>
-                <TableCell>{line['1b']}</TableCell>
-                <TableCell>{line['2b']}</TableCell>
-                <TableCell>{line['3b']}</TableCell>
-                <TableCell>{line.hr}</TableCell>
-                <TableCell>{line.bb}</TableCell>
-                <TableCell>{line.sf}</TableCell>
-                <TableCell>{line.k}</TableCell>
-                <TableCell>{line.r}</TableCell>
-              </TableRow>
-            );
-          })}
-        </TableBody>
-      </Table>
+      {game.lines.length === 0 ? (
+        <EmptyState
+          icon={CircleOff}
+          title="No box score lines"
+          message="This game doesn't have any player lines recorded."
+        />
+      ) : (
+        <Table aria-label="Box score" size="small">
+          <TableHead>
+            <TableRow>
+              <TableCell>Player</TableCell>
+              <TableCell align="right">AB</TableCell>
+              <TableCell align="right">H</TableCell>
+              <TableCell align="right">1B</TableCell>
+              <TableCell align="right">2B</TableCell>
+              <TableCell align="right">3B</TableCell>
+              <TableCell align="right">HR</TableCell>
+              <TableCell align="right">BB</TableCell>
+              <TableCell align="right">SF</TableCell>
+              <TableCell align="right">K</TableCell>
+              <TableCell align="right">R</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {game.lines.map((line) => {
+              const player = getPlayer(line.playerId);
+              return (
+                <TableRow key={line.playerId}>
+                  <TableCell>
+                    <MuiLink component={RouterLink} to={`/players/${line.playerId}`} color="secondary">
+                      {player?.name ?? line.playerId}
+                    </MuiLink>
+                  </TableCell>
+                  <TableCell align="right">{line.ab}</TableCell>
+                  <TableCell align="right">{hitCount(line)}</TableCell>
+                  <TableCell align="right">{line['1b']}</TableCell>
+                  <TableCell align="right">{line['2b']}</TableCell>
+                  <TableCell align="right">{line['3b']}</TableCell>
+                  <TableCell align="right">{line.hr}</TableCell>
+                  <TableCell align="right">{line.bb}</TableCell>
+                  <TableCell align="right">{line.sf}</TableCell>
+                  <TableCell align="right">{line.k}</TableCell>
+                  <TableCell align="right">{line.r}</TableCell>
+                </TableRow>
+              );
+            })}
+          </TableBody>
+        </Table>
+      )}
 
       {warnings.length > 0 && (
         <Typography color="text.secondary">Line data may be incomplete</Typography>

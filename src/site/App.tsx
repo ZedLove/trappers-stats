@@ -26,7 +26,7 @@ export default function App() {
 
   return (
     <>
-      <AppBar position="static">
+      <AppBar position="sticky">
         <Toolbar>
           <Box
             component="img"
@@ -56,6 +56,11 @@ export default function App() {
       <Box component="main" sx={{ p: 2 }}>
         <SiteBreadcrumbs />
         <Outlet />
+        <Box component="footer" sx={{ mt: 4, py: 2, textAlign: 'center' }}>
+          <Typography variant="caption" color="text.secondary">
+            Trappers
+          </Typography>
+        </Box>
       </Box>
     </>
   );

@@ -15,6 +15,8 @@ import { playerGameLog, playerStatsBySeason } from '../../shared/queries';
 import type { PlayerLine } from '../../shared/schema';
 import { deriveStats, formatRate, sumLines, type DerivedStats } from '../../shared/stats';
 import { PHASE_LABELS, phaseColor } from '../phase';
+import EmptyState from '../components/EmptyState';
+import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import NotFound from './NotFound';
 
 const STAT_HEADERS = [
@@ -65,7 +67,9 @@ function StatsTable({ ariaLabel, rows }: { ariaLabel: string; rows: DerivedStats
       <TableHead>
         <TableRow>
           {STAT_HEADERS.map((header) => (
-            <TableCell key={header}>{header}</TableCell>
+            <TableCell key={header} align="right">
+              {header}
+            </TableCell>
           ))}
         </TableRow>
       </TableHead>
@@ -73,7 +77,9 @@ function StatsTable({ ariaLabel, rows }: { ariaLabel: string; rows: DerivedStats
         {rows.map((stats, index) => (
           <TableRow key={index}>
             {statValues(stats).map((value, cellIndex) => (
-              <TableCell key={cellIndex}>{value}</TableCell>
+              <TableCell key={cellIndex} align="right">
+                {value}
+              </TableCell>
             ))}
           </TableRow>
         ))}
@@ -85,6 +91,10 @@ function StatsTable({ ariaLabel, rows }: { ariaLabel: string; rows: DerivedStats
 export default function PlayerPage() {
   const { playerId } = useParams<{ playerId: string }>();
   const player = playerId ? getPlayer(playerId) : undefined;
+
+  // When the player is missing we still set "Player" (rather than the display
+  // name); the NotFound fallback below handles the copy on the page itself.
+  useDocumentTitle(player?.name ?? 'Player');
 
   if (!player) {
     return <NotFound />;
@@ -113,7 +123,9 @@ export default function PlayerPage() {
           <TableRow>
             <TableCell>Season</TableCell>
             {STAT_HEADERS.map((header) => (
-              <TableCell key={header}>{header}</TableCell>
+              <TableCell key={header} align="right">
+                {header}
+              </TableCell>
             ))}
           </TableRow>
         </TableHead>
@@ -122,7 +134,9 @@ export default function PlayerPage() {
             <TableRow key={season}>
               <TableCell>{season}</TableCell>
               {statValues(stats).map((value, cellIndex) => (
-                <TableCell key={cellIndex}>{value}</TableCell>
+                <TableCell key={cellIndex} align="right">
+                  {value}
+                </TableCell>
               ))}
             </TableRow>
           ))}
@@ -132,50 +146,54 @@ export default function PlayerPage() {
       <Typography variant="h6" component="h2">
         Game log
       </Typography>
-      <Table aria-label="Game log" size="small">
-        <TableHead>
-          <TableRow>
-            <TableCell>Date</TableCell>
-            <TableCell>Opponent</TableCell>
-            <TableCell>Phase</TableCell>
-            <TableCell>AB</TableCell>
-            <TableCell>H</TableCell>
-            <TableCell>1B</TableCell>
-            <TableCell>2B</TableCell>
-            <TableCell>3B</TableCell>
-            <TableCell>HR</TableCell>
-            <TableCell>BB</TableCell>
-            <TableCell>SF</TableCell>
-            <TableCell>K</TableCell>
-            <TableCell>R</TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {log.map(({ game, line }) => (
-            <TableRow key={game.id}>
-              <TableCell>{game.date}</TableCell>
-              <TableCell>
-                <MuiLink component={RouterLink} to={`/games/${game.id}`} color="secondary">
-                  {getTeam(game.opponentId)?.name ?? game.opponentId}
-                </MuiLink>
-              </TableCell>
-              <TableCell>
-                <Chip label={PHASE_LABELS[game.phase]} size="small" color={phaseColor(game.phase)} />
-              </TableCell>
-              <TableCell>{line.ab}</TableCell>
-              <TableCell>{hitCount(line)}</TableCell>
-              <TableCell>{line['1b']}</TableCell>
-              <TableCell>{line['2b']}</TableCell>
-              <TableCell>{line['3b']}</TableCell>
-              <TableCell>{line.hr}</TableCell>
-              <TableCell>{line.bb}</TableCell>
-              <TableCell>{line.sf}</TableCell>
-              <TableCell>{line.k}</TableCell>
-              <TableCell>{line.r}</TableCell>
+      {log.length === 0 ? (
+        <EmptyState title="No games logged" message="This player hasn't recorded a line yet." />
+      ) : (
+        <Table aria-label="Game log" size="small">
+          <TableHead>
+            <TableRow>
+              <TableCell>Date</TableCell>
+              <TableCell>Opponent</TableCell>
+              <TableCell>Phase</TableCell>
+              <TableCell align="right">AB</TableCell>
+              <TableCell align="right">H</TableCell>
+              <TableCell align="right">1B</TableCell>
+              <TableCell align="right">2B</TableCell>
+              <TableCell align="right">3B</TableCell>
+              <TableCell align="right">HR</TableCell>
+              <TableCell align="right">BB</TableCell>
+              <TableCell align="right">SF</TableCell>
+              <TableCell align="right">K</TableCell>
+              <TableCell align="right">R</TableCell>
             </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+          </TableHead>
+          <TableBody>
+            {log.map(({ game, line }) => (
+              <TableRow key={game.id}>
+                <TableCell>{game.date}</TableCell>
+                <TableCell>
+                  <MuiLink component={RouterLink} to={`/games/${game.id}`} color="secondary">
+                    {getTeam(game.opponentId)?.name ?? game.opponentId}
+                  </MuiLink>
+                </TableCell>
+                <TableCell>
+                  <Chip label={PHASE_LABELS[game.phase]} size="small" color={phaseColor(game.phase)} />
+                </TableCell>
+                <TableCell align="right">{line.ab}</TableCell>
+                <TableCell align="right">{hitCount(line)}</TableCell>
+                <TableCell align="right">{line['1b']}</TableCell>
+                <TableCell align="right">{line['2b']}</TableCell>
+                <TableCell align="right">{line['3b']}</TableCell>
+                <TableCell align="right">{line.hr}</TableCell>
+                <TableCell align="right">{line.bb}</TableCell>
+                <TableCell align="right">{line.sf}</TableCell>
+                <TableCell align="right">{line.k}</TableCell>
+                <TableCell align="right">{line.r}</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      )}
     </Box>
   );
 }
