@@ -1,4 +1,4 @@
-import { alpha, createTheme } from '@mui/material/styles';
+import { alpha, createTheme, type Theme } from '@mui/material/styles';
 
 /** Brand anchors */
 export const NAVY = '#001736';
@@ -25,11 +25,28 @@ function zebraOverrides(tint: string) {
     },
     MuiDataGrid: {
       styleOverrides: {
-        root: {
+        root: ({ theme }: { theme: Theme }) => ({
           '& .MuiDataGrid-row--striped': {
             backgroundColor: tint,
           },
-        },
+          // Vertical divider before the first column of each stat group
+          // (R, BB, AVG). Applied to both header and body cells via the
+          // `colgroup-sep` className set in StatsGrid's column definitions.
+          '& .colgroup-sep': {
+            borderLeft: `1px solid ${theme.palette.divider}`,
+          },
+          // Rate stats (AVG/OBP/SLG/OPS) are emphasized with a bold teal tint.
+          '& .rate-stat': {
+            fontWeight: 600,
+            color: theme.palette.secondary.main,
+          },
+          // Best value in a column gets a stronger emphasis + a teal tint.
+          // Kept after `.rate-stat` so a leader that is also a rate stat wins.
+          '& .leader': {
+            fontWeight: 700,
+            backgroundColor: alpha(theme.palette.secondary.main, 0.14),
+          },
+        }),
       },
     },
   };

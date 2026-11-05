@@ -75,7 +75,7 @@ describe('StatsGrid', () => {
       '3B',
       'HR',
       'BB',
-      'K',
+      'SO',
       'AVG',
       'OBP',
       'SLG',
@@ -115,6 +115,34 @@ describe('StatsGrid', () => {
   it('shows a friendly message for an empty season instead of crashing', () => {
     renderGrid([]);
     expect(screen.getByText(/no games entered yet/i)).toBeInTheDocument();
+  });
+
+  it('emphasizes the best value in each column, including ties', () => {
+    renderGrid();
+    const stretch = playerRow('Stretch');
+    const zMan = playerRow('Z-Man');
+    const joJo = playerRow('Jo Jo');
+
+    // AVG/SLG/OPS leaders all belong to Stretch.
+    expect(stretch.querySelector('[data-field="avg"].leader')).not.toBeNull();
+    expect(stretch.querySelector('[data-field="slg"].leader')).not.toBeNull();
+    expect(stretch.querySelector('[data-field="ops"].leader')).not.toBeNull();
+    // OBP leader is Jo Jo (1.000 from a walk and no at-bat).
+    expect(joJo.querySelector('[data-field="obp"].leader')).not.toBeNull();
+    expect(zMan.querySelector('[data-field="obp"].leader')).toBeNull();
+    // Singles tie at one between Z-Man and Stretch, so both are leaders.
+    expect(zMan.querySelector('[data-field="singles"].leader')).not.toBeNull();
+    expect(stretch.querySelector('[data-field="singles"].leader')).not.toBeNull();
+  });
+
+  it('filters rows by player name (case-insensitive substring)', () => {
+    renderGrid();
+    fireEvent.change(screen.getByRole('textbox', { name: 'Search players' }), {
+      target: { value: 'z-ma' },
+    });
+    expect(screen.getAllByRole('link')).toHaveLength(1);
+    expect(screen.getByRole('link', { name: 'Z-Man' })).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Stretch' })).not.toBeInTheDocument();
   });
 });
 
