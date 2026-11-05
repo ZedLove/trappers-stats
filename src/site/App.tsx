@@ -1,5 +1,6 @@
 import { AppBar, Box, Button, CssBaseline, Toolbar, Typography } from '@mui/material';
 import { Link, NavLink, Outlet } from 'react-router-dom';
+import SiteBreadcrumbs from './components/SiteBreadcrumbs';
 
 const navLinkSx = {
   color: 'inherit',
@@ -29,6 +30,7 @@ export default function App() {
         </Toolbar>
       </AppBar>
       <Box component="main" sx={{ p: 2 }}>
+        <SiteBreadcrumbs />
         <Outlet />
       </Box>
     </>
