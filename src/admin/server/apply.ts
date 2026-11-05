@@ -6,7 +6,7 @@ import type {
   SeasonResults,
   Team,
   TeamsFile,
-} from '../../shared/schema';
+} from '../../shared/schema.js';
 
 export function slugify(name: string): string {
   return name
