@@ -11,16 +11,24 @@ import {
 } from '@mui/material';
 import { useEffect, useState } from 'react';
 import { Controller, useFieldArray, useForm, useWatch, type Resolver } from 'react-hook-form';
-import { suggestGameId, suggestPlayerId } from '../../admin/server/apply.js';
+import { suggestGameId, suggestPlayerId, slugify } from '../../admin/server/apply.js';
 import {
   GameSchema,
   type Game,
+  type Location,
   type Player,
   type PlayerLine,
   type Team,
 } from '../../shared/schema';
 import { gameWarnings } from '../../shared/validate';
-import { getState, saveGame, savePlayer, saveTeam, type AdminState } from '../api';
+import {
+  getState,
+  saveGame,
+  saveLocation,
+  savePlayer,
+  saveTeam,
+  type AdminState,
+} from '../api';
 import LineupGrid from '../components/LineupGrid';
 import LivePreview from '../components/LivePreview';
 
@@ -36,6 +44,13 @@ interface TeamOption extends Team {
 }
 
 const teamFilter = createFilterOptions<TeamOption>();
+
+interface LocationOption extends Location {
+  inputValue?: string;
+  isNew?: boolean;
+}
+
+const locationFilter = createFilterOptions<LocationOption>();
 
 function emptyLine(): PlayerLine {
   return {
@@ -57,7 +72,7 @@ const defaultValues: Game = {
   date: '',
   phase: 'regular',
   opponentId: '',
-  location: '',
+  locationId: '',
   score: { us: 0, them: 0 },
   lines: [emptyLine()],
 };
@@ -97,6 +112,7 @@ export default function GameEntry() {
 
   const players = state?.players.players ?? [];
   const teams = state?.teams.teams ?? [];
+  const locations = state?.locations.locations ?? [];
   const seasons = state?.seasons ?? [];
   const opponents = teams.filter((team) => team.us !== true);
 
@@ -124,13 +140,25 @@ export default function GameEntry() {
     return player;
   }
 
+  async function handleAddLocation(name: string): Promise<Location> {
+    const id = slugify(name);
+    const location: Location = { id, name };
+    await saveLocation(location);
+    setState((prev) =>
+      prev
+        ? { ...prev, locations: { locations: [...prev.locations.locations, location] } }
+        : prev,
+    );
+    return location;
+  }
+
   async function onSubmit(values: Game) {
     if (season == null) return;
     setSubmitError(null);
 
     const existingIds = seasons.flatMap((seasonFile) => seasonFile.games.map((game) => game.id));
     const id = suggestGameId(values.date, values.opponentId, existingIds);
-    const game: Game = { ...values, id };
+    const game: Game = { ...values, id, locationId: values.locationId || undefined };
 
     try {
       await saveGame(season, game);
@@ -307,17 +335,58 @@ export default function GameEntry() {
         />
         <Controller
           control={control}
-          name="location"
-          render={({ field }) => (
-            <TextField
-              label="Location"
-              size="small"
-              sx={{ minWidth: 180 }}
-              value={field.value}
-              onChange={field.onChange}
-              onBlur={field.onBlur}
-            />
-          )}
+          name="locationId"
+          render={({ field }) => {
+            const selected = locations.find((location) => location.id === field.value) ?? null;
+            return (
+              <Autocomplete<LocationOption>
+                options={locations}
+                value={selected}
+                isOptionEqualToValue={(option, value) => option.id === value.id}
+                getOptionLabel={(option) => option.name}
+                filterOptions={(options, params) => {
+                  const filtered = locationFilter(options, params);
+                  const { inputValue } = params;
+                  const exists = options.some((option) => option.name === inputValue);
+                  if (inputValue !== '' && !exists) {
+                    filtered.push({
+                      id: `__new__${inputValue}`,
+                      name: inputValue,
+                      inputValue,
+                      isNew: true,
+                    });
+                  }
+                  return filtered;
+                }}
+                onChange={(_, value) => {
+                  if (!value) {
+                    field.onChange('');
+                    return;
+                  }
+                  if (value.isNew) {
+                    void handleAddLocation(value.name).then((created) =>
+                      field.onChange(created.id),
+                    );
+                  } else {
+                    field.onChange(value.id);
+                  }
+                }}
+                renderOption={(props, option) => (
+                  <li {...props} key={option.id}>
+                    {option.isNew ? `Add "${option.name}"` : option.name}
+                  </li>
+                )}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    label="Location"
+                    size="small"
+                    sx={{ minWidth: 180 }}
+                  />
+                )}
+              />
+            );
+          }}
         />
         <Controller
           control={control}

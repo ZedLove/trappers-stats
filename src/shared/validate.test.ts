@@ -20,12 +20,19 @@ const teams = {
   ],
 };
 
+const locations = {
+  locations: [
+    { id: 'doverfield-park', name: 'Doverfield Park' },
+    { id: 'riverbend-field', name: 'Riverbend Field' },
+  ],
+};
+
 const baseGame = {
   id: '2026-05-12-eagles',
   date: '2026-05-12',
   phase: 'regular' as const,
   opponentId: 'eagles',
-  location: 'Doverfield Park',
+  locationId: 'doverfield-park',
   score: { us: 7, them: 9 },
   lines: [
     { playerId: 'mike-s-1', ab: 3, '1b': 1, '2b': 1, '3b': 0, hr: 0, bb: 1, sf: 0, k: 1, r: 2 },
@@ -46,6 +53,7 @@ const cleanSeason = {
 const validInput = {
   players,
   teams,
+  locations,
   seasons: { '2026': cleanSeason },
 };
 
@@ -83,6 +91,25 @@ describe('validateData', () => {
       },
     };
     expect(validateData(invalid).length).toBeGreaterThan(0);
+  });
+
+  it('reports an unknown locationId', () => {
+    const invalid = {
+      ...validInput,
+      seasons: {
+        '2026': {
+          ...cleanSeason,
+          games: [{ ...baseGame, locationId: 'mystery-field' }],
+        },
+      },
+    };
+    expect(validateData(invalid)).toContain(
+      'Game "2026-05-12-eagles" references unknown location "mystery-field"',
+    );
+  });
+
+  it('reports no issue for a valid locationId', () => {
+    expect(validateData(validInput)).toEqual([]);
   });
 
   it('reports opponentId equal to the us team id', () => {

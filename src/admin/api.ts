@@ -1,5 +1,7 @@
 import type {
   Game,
+  Location,
+  LocationsFile,
   Player,
   PlayersFile,
   SeasonFile,
@@ -13,6 +15,7 @@ const BASE = '/trappers-stats/__admin';
 export interface AdminState {
   players: PlayersFile;
   teams: TeamsFile;
+  locations: LocationsFile;
   seasons: SeasonFile[];
 }
 
@@ -69,6 +72,20 @@ export function renamePlayer(id: string, name: string): Promise<PlayersFile> {
 
 export function renameTeam(id: string, name: string): Promise<TeamsFile> {
   return request<TeamsFile>('/rename-team', {
+    method: 'POST',
+    body: JSON.stringify({ id, name }),
+  });
+}
+
+export function saveLocation(location: Location): Promise<LocationsFile> {
+  return request<LocationsFile>('/save-location', {
+    method: 'POST',
+    body: JSON.stringify({ location }),
+  });
+}
+
+export function renameLocation(id: string, name: string): Promise<LocationsFile> {
+  return request<LocationsFile>('/rename-location', {
     method: 'POST',
     body: JSON.stringify({ id, name }),
   });

@@ -1,16 +1,18 @@
 import { useState } from 'react';
 import { AppBar, Box, CssBaseline, Tab, Tabs, Toolbar, Typography } from '@mui/material';
 import GameEntry from './screens/GameEntry';
+import ManageLocations from './screens/ManageLocations';
 import ManagePlayers from './screens/ManagePlayers';
 import ManageTeams from './screens/ManageTeams';
 import SeasonResults from './screens/SeasonResults';
 
-type ScreenId = 'game' | 'players' | 'teams' | 'results';
+type ScreenId = 'game' | 'players' | 'teams' | 'locations' | 'results';
 
 const screens: Array<{ id: ScreenId; label: string }> = [
   { id: 'game', label: 'Game Entry' },
   { id: 'players', label: 'Players' },
   { id: 'teams', label: 'Teams' },
+  { id: 'locations', label: 'Locations' },
   { id: 'results', label: 'Season Results' },
 ];
 
@@ -47,6 +49,8 @@ export default function AdminApp() {
           <ManagePlayers />
         ) : screen === 'teams' ? (
           <ManageTeams />
+        ) : screen === 'locations' ? (
+          <ManageLocations />
         ) : (
           <SeasonResults />
         )}

@@ -2,10 +2,12 @@ import { describe, it, expect } from 'vitest';
 import {
   players,
   teams,
+  locations,
   seasons,
   getSeason,
   getPlayer,
   getTeam,
+  getLocation,
   latestSeason,
 } from './data';
 import { validateData, gameWarnings } from './validate';
@@ -13,7 +15,7 @@ import { validateData, gameWarnings } from './validate';
 describe('seed data', () => {
   it('passes validateData with no issues', () => {
     const seasonRecord = Object.fromEntries(seasons.map((season) => [String(season.season), season]));
-    expect(validateData({ players, teams, seasons: seasonRecord })).toEqual([]);
+    expect(validateData({ players, teams, locations, seasons: seasonRecord })).toEqual([]);
   });
 
   it('produces no warnings for any game', () => {
@@ -27,6 +29,13 @@ describe('seed data', () => {
   it('has unique player ids and display names', () => {
     const ids = players.players.map((player) => player.id);
     const names = players.players.map((player) => player.name);
+    expect(new Set(ids).size).toBe(ids.length);
+    expect(new Set(names).size).toBe(names.length);
+  });
+
+  it('has unique location ids and names', () => {
+    const ids = locations.locations.map((location) => location.id);
+    const names = locations.locations.map((location) => location.name);
     expect(new Set(ids).size).toBe(ids.length);
     expect(new Set(names).size).toBe(names.length);
   });
@@ -103,6 +112,16 @@ describe('accessors', () => {
 
   it('getTeam returns undefined for an unknown id', () => {
     expect(getTeam('nobody')).toBeUndefined();
+  });
+
+  it('getLocation returns a location for a known id', () => {
+    const known = locations.locations[0];
+    expect(known).toBeDefined();
+    expect(getLocation(known!.id)).toEqual(known);
+  });
+
+  it('getLocation returns undefined for an unknown id', () => {
+    expect(getLocation('nobody')).toBeUndefined();
   });
 
   it('latestSeason returns the season with the highest year', () => {

@@ -16,7 +16,7 @@ vi.mock('../../shared/data', async (importActual) => {
           date: '2025-05-06',
           phase: 'regular',
           opponentId: 'hornets',
-          location: 'Doverfield Park',
+          locationId: 'doverfield-park',
           score: { us: 5, them: 3 },
           lines: [
             {

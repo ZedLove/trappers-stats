@@ -1,8 +1,9 @@
-import type { Game, PlayersFile, SeasonFile, TeamsFile } from './schema';
+import type { Game, LocationsFile, PlayersFile, SeasonFile, TeamsFile } from './schema';
 
 export function validateData(input: {
   players: PlayersFile;
   teams: TeamsFile;
+  locations: LocationsFile;
   seasons: Record<string, SeasonFile>;
 }): string[] {
   const issues: string[] = [];
@@ -18,6 +19,7 @@ export function validateData(input: {
     });
 
     const teamIds = new Set(input.teams.teams.map((team) => team.id));
+    const locationIds = new Set(input.locations.locations.map((location) => location.id));
     const usTeams = input.teams.teams.filter((team) => team.us === true);
     if (usTeams.length !== 1) {
       issues.push(`Expected exactly one us team, found ${usTeams.length}`);
@@ -32,6 +34,9 @@ export function validateData(input: {
       season.games.forEach((game) => {
         if (!teamIds.has(game.opponentId)) {
           issues.push(`Game "${game.id}" references unknown opponent team "${game.opponentId}"`);
+        }
+        if (game.locationId !== undefined && !locationIds.has(game.locationId)) {
+          issues.push(`Game "${game.id}" references unknown location "${game.locationId}"`);
         }
         if (game.opponentId === usTeamId) {
           issues.push(`Game "${game.id}" opponent cannot be the us team "${game.opponentId}"`);

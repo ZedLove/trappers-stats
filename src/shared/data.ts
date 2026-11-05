@@ -1,10 +1,14 @@
 import type { ZodError } from 'zod';
+import locationsJson from '../../data/locations.json';
 import playersJson from '../../data/players.json';
 import teamsJson from '../../data/teams.json';
 import {
+  LocationsFileSchema,
   PlayersFileSchema,
   SeasonFileSchema,
   TeamsFileSchema,
+  type Location,
+  type LocationsFile,
   type Player,
   type PlayersFile,
   type SeasonFile,
@@ -27,7 +31,12 @@ function formatIssues(label: string, error: ZodError): string[] {
 
 // Parse + cross-validate everything at module load, aggregating every issue
 // so a bad hand-edit fails `vite build` with the full list at once.
-function loadData(): { players: PlayersFile; teams: TeamsFile; seasons: SeasonFile[] } {
+function loadData(): {
+  players: PlayersFile;
+  teams: TeamsFile;
+  locations: LocationsFile;
+  seasons: SeasonFile[];
+} {
   const issues: string[] = [];
 
   const playersResult = PlayersFileSchema.safeParse(playersJson);
@@ -38,6 +47,11 @@ function loadData(): { players: PlayersFile; teams: TeamsFile; seasons: SeasonFi
   const teamsResult = TeamsFileSchema.safeParse(teamsJson);
   if (!teamsResult.success) {
     issues.push(...formatIssues('teams.json', teamsResult.error));
+  }
+
+  const locationsResult = LocationsFileSchema.safeParse(locationsJson);
+  if (!locationsResult.success) {
+    issues.push(...formatIssues('locations.json', locationsResult.error));
   }
 
   const seasonsRecord: Record<string, SeasonFile> = {};
@@ -53,17 +67,24 @@ function loadData(): { players: PlayersFile; teams: TeamsFile; seasons: SeasonFi
     }
   }
 
-  if (playersResult.success && teamsResult.success && seasonsValid) {
+  if (playersResult.success && teamsResult.success && locationsResult.success && seasonsValid) {
     issues.push(
       ...validateData({
         players: playersResult.data,
         teams: teamsResult.data,
+        locations: locationsResult.data,
         seasons: seasonsRecord,
       }),
     );
   }
 
-  if (issues.length > 0 || !playersResult.success || !teamsResult.success || !seasonsValid) {
+  if (
+    issues.length > 0 ||
+    !playersResult.success ||
+    !teamsResult.success ||
+    !locationsResult.success ||
+    !seasonsValid
+  ) {
     throw new Error(
       `Invalid data files under data/:\n${issues.map((issue) => `  - ${issue}`).join('\n')}`,
     );
@@ -72,6 +93,7 @@ function loadData(): { players: PlayersFile; teams: TeamsFile; seasons: SeasonFi
   return {
     players: playersResult.data,
     teams: teamsResult.data,
+    locations: locationsResult.data,
     seasons: Object.values(seasonsRecord).sort((a, b) => a.season - b.season),
   };
 }
@@ -80,6 +102,7 @@ const data = loadData();
 
 export const players: PlayersFile = data.players;
 export const teams: TeamsFile = data.teams;
+export const locations: LocationsFile = data.locations;
 export const seasons: SeasonFile[] = data.seasons;
 
 export function getSeason(year: number): SeasonFile | undefined {
@@ -92,6 +115,10 @@ export function getPlayer(id: string): Player | undefined {
 
 export function getTeam(id: string): Team | undefined {
   return teams.teams.find((team) => team.id === id);
+}
+
+export function getLocation(id: string | undefined): Location | undefined {
+  return locations.locations.find((location) => location.id === id);
 }
 
 // seasons is sorted ascending by year, so the last entry is the latest.
