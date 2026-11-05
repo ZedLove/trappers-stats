@@ -1,16 +1,16 @@
 import { useMemo, useState } from 'react';
-import { Box, Link as MuiLink, TextField } from '@mui/material';
+import { Box, Link as MuiLink, TextField, useMediaQuery, useTheme } from '@mui/material';
 import { DataGrid, type GridColDef } from '@mui/x-data-grid';
+import { SearchX } from 'lucide-react';
 import { Link as RouterLink } from 'react-router-dom';
 import { getPlayer } from '../../shared/data';
 import { formatRate, type DerivedStats } from '../../shared/stats';
 import EmptyState from './EmptyState';
+import StatsCards, { type PlayerStatRow } from './StatsCards';
 
 export interface StatsGridProps {
   rows: Array<{ playerId: string; stats: DerivedStats }>;
 }
-
-type Row = { playerId: string; name: string } & DerivedStats;
 
 // Columns rendered as rate stats: bolded and formatted with formatRate().
 const RATE_FIELDS = new Set(['avg', 'obp', 'slg', 'ops']);
@@ -128,9 +128,11 @@ function buildColumns(): GridColDef[] {
 // makes the grid state match (nulls sort last under descending order, and the
 // stable sort keeps the PA tiebreak for equal averages).
 export default function StatsGrid({ rows }: StatsGridProps) {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const [query, setQuery] = useState('');
 
-  const gridRows = useMemo<Row[]>(
+  const gridRows = useMemo<PlayerStatRow[]>(
     () =>
       rows.map(({ playerId, stats }) => ({
         playerId,
@@ -169,18 +171,28 @@ export default function StatsGrid({ rows }: StatsGridProps) {
         onChange={(event) => setQuery(event.target.value)}
         sx={{ width: 280, maxWidth: '100%' }}
       />
-      <DataGrid
-        rows={visibleRows}
-        columns={columns}
-        getRowId={(row) => row.playerId}
-        getRowClassName={(params) =>
-          params.indexRelativeToCurrentPage % 2 === 1 ? 'MuiDataGrid-row--striped' : ''
-        }
-        autoHeight
-        hideFooter
-        disableRowSelectionOnClick
-        initialState={{ sorting: { sortModel: [{ field: 'avg', sort: 'desc' }] } }}
-      />
+      {visibleRows.length === 0 ? (
+        <EmptyState
+          icon={SearchX}
+          title="No players found"
+          message={`No players match “${query.trim()}”.`}
+        />
+      ) : isMobile ? (
+        <StatsCards rows={visibleRows} />
+      ) : (
+        <DataGrid
+          rows={visibleRows}
+          columns={columns}
+          getRowId={(row) => row.playerId}
+          getRowClassName={(params) =>
+            params.indexRelativeToCurrentPage % 2 === 1 ? 'MuiDataGrid-row--striped' : ''
+          }
+          autoHeight
+          hideFooter
+          disableRowSelectionOnClick
+          initialState={{ sorting: { sortModel: [{ field: 'avg', sort: 'desc' }] } }}
+        />
+      )}
     </Box>
   );
 }

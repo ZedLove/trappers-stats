@@ -1,14 +1,17 @@
 // @vitest-environment jsdom
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { MemoryRouter, useLocation } from 'react-router-dom';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { PlayerLine } from '../../shared/schema';
 import { deriveStats, sumLines } from '../../shared/stats';
 import StatsPage from '../pages/StatsPage';
 import SeasonPhaseControls from './SeasonPhaseControls';
 import StatsGrid from './StatsGrid';
 
-afterEach(cleanup);
+afterEach(() => {
+  cleanup();
+  vi.unstubAllGlobals();
+});
 
 function makeLine(playerId: string, overrides: Partial<PlayerLine> = {}): PlayerLine {
   return {
@@ -125,6 +128,118 @@ describe('StatsGrid', () => {
     expect(screen.getAllByRole('link')).toHaveLength(1);
     expect(screen.getByRole('link', { name: 'Z-Man' })).toBeInTheDocument();
     expect(screen.queryByRole('link', { name: 'Stretch' })).not.toBeInTheDocument();
+  });
+});
+
+// jsdom has no `matchMedia`, so MUI's useMediaQuery falls back to its default
+// (`false`) unless we stub the global. Returning `matches` for every query is
+// enough for these tests: only `theme.breakpoints.down('sm')` is consulted.
+function stubMatchMedia(matches: boolean) {
+  vi.stubGlobal(
+    'matchMedia',
+    vi.fn().mockImplementation((query: string) => ({
+      matches,
+      media: query,
+      onchange: null,
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      dispatchEvent: vi.fn(),
+    })),
+  );
+}
+
+// leaderboard() hands StatsGrid rows in AVG-desc order and the cards must
+// preserve it (the grid itself re-sorts scrambled input via its sort model).
+const LEADERBOARD_ROWS = [...FIXTURE_ROWS].reverse();
+
+function playerCard(name: string): HTMLElement {
+  const card = screen.getByRole('link', { name }).closest('li');
+  expect(card).not.toBeNull();
+  return card as HTMLElement;
+}
+
+function cardStat(card: HTMLElement, field: string): string {
+  const value = card.querySelector(`[data-testid="stat-${field}"]`);
+  expect(value).not.toBeNull();
+  return value?.textContent ?? '';
+}
+
+describe('StatsGrid — mobile cards', () => {
+  it('renders ranked player cards with links and formatted stats', () => {
+    stubMatchMedia(true);
+    renderGrid(LEADERBOARD_ROWS);
+
+    expect(screen.getAllByTestId('rank-badge').map((el) => el.textContent)).toEqual([
+      '1',
+      '2',
+      '3',
+    ]);
+    expect(screen.getAllByRole('link').map((link) => link.getAttribute('href'))).toEqual([
+      '/players/stretch',
+      '/players/z-man',
+      '/players/jo-jo',
+    ]);
+
+    const stretch = playerCard('Stretch');
+    expect(cardStat(stretch, 'g')).toBe('1');
+    expect(cardStat(stretch, 'avg')).toBe('.500');
+    expect(cardStat(stretch, 'obp')).toBe('.500');
+    expect(cardStat(stretch, 'slg')).toBe('1.250');
+    expect(cardStat(stretch, 'ops')).toBe('1.750');
+
+    const joJo = playerCard('Jo Jo');
+    expect(cardStat(joJo, 'g')).toBe('1');
+    expect(cardStat(joJo, 'avg')).toBe('—');
+    expect(cardStat(joJo, 'obp')).toBe('1.000');
+    expect(cardStat(joJo, 'slg')).toBe('—');
+    expect(cardStat(joJo, 'ops')).toBe('—');
+  });
+
+  it('renders the DataGrid on wider viewports', () => {
+    stubMatchMedia(false);
+    renderGrid();
+    expect(screen.getAllByRole('columnheader').map((header) => header.textContent)).toEqual([
+      'Player',
+      'G',
+      'PA',
+      'AB',
+      'R',
+      'H',
+      '1B',
+      '2B',
+      '3B',
+      'HR',
+      'BB',
+      'SO',
+      'AVG',
+      'OBP',
+      'SLG',
+      'OPS',
+    ]);
+    expect(screen.queryByTestId('rank-badge')).not.toBeInTheDocument();
+  });
+
+  it('narrows the card list by player name', () => {
+    stubMatchMedia(true);
+    renderGrid(LEADERBOARD_ROWS);
+    fireEvent.change(screen.getByRole('textbox', { name: 'Search players' }), {
+      target: { value: 'z-ma' },
+    });
+    expect(screen.getAllByRole('link')).toHaveLength(1);
+    expect(screen.getByRole('link', { name: 'Z-Man' })).toBeInTheDocument();
+    expect(screen.getByTestId('rank-badge')).toHaveTextContent('1');
+  });
+
+  it('shows an empty state when the search matches no players', () => {
+    stubMatchMedia(true);
+    renderGrid(LEADERBOARD_ROWS);
+    fireEvent.change(screen.getByRole('textbox', { name: 'Search players' }), {
+      target: { value: 'nobody' },
+    });
+    expect(screen.getByText(/no players found/i)).toBeInTheDocument();
+    expect(screen.queryByTestId('rank-badge')).not.toBeInTheDocument();
   });
 });
 
