@@ -13,14 +13,9 @@ import { useParams } from 'react-router-dom';
 import { Link as RouterLink } from 'react-router-dom';
 import { getLocation, getPlayer, getTeam, seasons } from '../../shared/data';
 import { gameWarnings } from '../../shared/validate';
-import type { Game, Phase } from '../../shared/schema';
+import type { Game } from '../../shared/schema';
+import { PHASE_LABELS, phaseColor } from '../phase';
 import NotFound from './NotFound';
-
-const PHASE_LABELS: Record<Phase, string> = {
-  regular: 'Regular Season',
-  round_robin: 'Round Robin',
-  playoff: 'Playoffs',
-};
 
 function gameResult(game: Game): 'W' | 'L' | 'T' {
   if (game.score.us > game.score.them) return 'W';
@@ -64,7 +59,7 @@ export default function BoxScorePage() {
       </Typography>
 
       <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', flexWrap: 'wrap' }}>
-        <Chip label={PHASE_LABELS[game.phase]} size="small" />
+        <Chip label={PHASE_LABELS[game.phase]} size="small" color={phaseColor(game.phase)} />
         <Typography component="span">{opponentName}</Typography>
         {getLocation(game.locationId)?.name && (
           <Typography component="span" color="text.secondary">
@@ -99,7 +94,7 @@ export default function BoxScorePage() {
             return (
               <TableRow key={line.playerId}>
                 <TableCell>
-                  <MuiLink component={RouterLink} to={`/players/${line.playerId}`}>
+                  <MuiLink component={RouterLink} to={`/players/${line.playerId}`} color="secondary">
                     {player?.name ?? line.playerId}
                   </MuiLink>
                 </TableCell>
