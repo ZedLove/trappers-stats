@@ -4,6 +4,7 @@ import {
   Table,
   TableBody,
   TableCell,
+  TableContainer,
   TableHead,
   TableRow,
   Typography,
@@ -83,47 +84,49 @@ export default function BoxScorePage() {
           message="This game doesn't have any player lines recorded."
         />
       ) : (
-        <Table aria-label="Box score" size="small">
-          <TableHead>
-            <TableRow>
-              <TableCell>Player</TableCell>
-              <TableCell align="center">AB</TableCell>
-              <TableCell align="center">H</TableCell>
-              <TableCell align="center">1B</TableCell>
-              <TableCell align="center">2B</TableCell>
-              <TableCell align="center">3B</TableCell>
-              <TableCell align="center">HR</TableCell>
-              <TableCell align="center">BB</TableCell>
-              <TableCell align="center">SF</TableCell>
-              <TableCell align="center">K</TableCell>
-              <TableCell align="center">R</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {game.lines.map((line) => {
-              const player = getPlayer(line.playerId);
-              return (
-                <TableRow key={line.playerId}>
-                  <TableCell>
-                    <MuiLink component={RouterLink} to={`/players/${line.playerId}`} color="secondary">
-                      {player?.name ?? line.playerId}
-                    </MuiLink>
-                  </TableCell>
-                  <TableCell align="right">{line.ab}</TableCell>
-                  <TableCell align="right">{hitCount(line)}</TableCell>
-                  <TableCell align="right">{line['1b']}</TableCell>
-                  <TableCell align="right">{line['2b']}</TableCell>
-                  <TableCell align="right">{line['3b']}</TableCell>
-                  <TableCell align="right">{line.hr}</TableCell>
-                  <TableCell align="right">{line.bb}</TableCell>
-                  <TableCell align="right">{line.sf}</TableCell>
-                  <TableCell align="right">{line.k}</TableCell>
-                  <TableCell align="right">{line.r}</TableCell>
-                </TableRow>
-              );
-            })}
-          </TableBody>
-        </Table>
+        <TableContainer>
+          <Table aria-label="Box score" size="small">
+            <TableHead>
+              <TableRow>
+                <TableCell>Player</TableCell>
+                <TableCell align="center">AB</TableCell>
+                <TableCell align="center">H</TableCell>
+                <TableCell align="center">1B</TableCell>
+                <TableCell align="center">2B</TableCell>
+                <TableCell align="center">3B</TableCell>
+                <TableCell align="center">HR</TableCell>
+                <TableCell align="center">BB</TableCell>
+                <TableCell align="center">SF</TableCell>
+                <TableCell align="center">K</TableCell>
+                <TableCell align="center">R</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {game.lines.map((line) => {
+                const player = getPlayer(line.playerId);
+                return (
+                  <TableRow key={line.playerId}>
+                    <TableCell>
+                      <MuiLink component={RouterLink} to={`/players/${line.playerId}`} color="secondary">
+                        {player?.name ?? line.playerId}
+                      </MuiLink>
+                    </TableCell>
+                    <TableCell align="right">{line.ab}</TableCell>
+                    <TableCell align="right">{hitCount(line)}</TableCell>
+                    <TableCell align="right">{line['1b']}</TableCell>
+                    <TableCell align="right">{line['2b']}</TableCell>
+                    <TableCell align="right">{line['3b']}</TableCell>
+                    <TableCell align="right">{line.hr}</TableCell>
+                    <TableCell align="right">{line.bb}</TableCell>
+                    <TableCell align="right">{line.sf}</TableCell>
+                    <TableCell align="right">{line.k}</TableCell>
+                    <TableCell align="right">{line.r}</TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </TableContainer>
       )}
 
       {warnings.length > 0 && (
