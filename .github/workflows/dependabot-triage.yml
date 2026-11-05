@@ -13,7 +13,7 @@ permissions:
 jobs:
   ai-triage:
     name: ai-triage
-    if: github.actor == 'dependabot[bot]'
+    if: github.event.pull_request.user.login == 'dependabot[bot]'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -76,6 +76,7 @@ jobs:
           git diff origin/main...HEAD -- package.json package-lock.json > /tmp/diff.txt || true
 
           summary=$(opencode run \
+            --standalone \
             --auto \
             --model opencode-go/gpt-6-luna \
             --file /tmp/pr.json \
@@ -102,7 +103,7 @@ jobs:
 
   auto-merge:
     name: auto-merge
-    if: github.actor == 'dependabot[bot]'
+    if: github.event.pull_request.user.login == 'dependabot[bot]'
     runs-on: ubuntu-latest
     permissions:
       contents: write
