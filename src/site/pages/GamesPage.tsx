@@ -1,5 +1,15 @@
-import { Box, Chip, List, ListItem, ListItemButton, Typography } from '@mui/material';
-import { Link as RouterLink } from 'react-router-dom';
+import {
+  Box,
+  Chip,
+  Link as MuiLink,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableRow,
+  Typography,
+} from '@mui/material';
+import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import { getSeason, getTeam, latestSeason } from '../../shared/data';
 import { filterGames, sortGamesByDate, teamRecord } from '../../shared/queries';
 import type { Game, Phase } from '../../shared/schema';
@@ -46,6 +56,7 @@ function resultColor(result: 'W' | 'L' | 'T'): 'success' | 'error' | 'default' {
 
 export default function GamesPage() {
   const { filter } = useSeasonFilter();
+  const navigate = useNavigate();
   // The season selector has no All-time option on this page, so an 'all'
   // filter (e.g. a pasted URL) falls back to the latest season.
   const seasonFile = filter.season === 'all' ? latestSeason() : getSeason(filter.season);
@@ -85,35 +96,53 @@ export default function GamesPage() {
       {games.length === 0 ? (
         <Typography color="text.secondary">No games entered yet</Typography>
       ) : (
-        <List aria-label="Games" disablePadding>
-          {games.map((game) => {
-            const result = gameResult(game);
-            return (
-              <ListItem key={game.id} disablePadding>
-                <ListItemButton
-                  component={RouterLink}
-                  to={`/games/${game.id}`}
-                  sx={{ display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'wrap' }}
+        <Table aria-label="Games" size="small">
+          <TableHead>
+            <TableRow>
+              <TableCell>Date</TableCell>
+              <TableCell>Opponent</TableCell>
+              <TableCell>Phase</TableCell>
+              <TableCell>Result</TableCell>
+              <TableCell>Score</TableCell>
+              <TableCell>Location</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {games.map((game) => {
+              const result = gameResult(game);
+              const opponentName = getTeam(game.opponentId)?.name ?? game.opponentId;
+              return (
+                <TableRow
+                  key={game.id}
+                  hover
+                  onClick={() => navigate(`/games/${game.id}`)}
+                  sx={{ cursor: 'pointer', '&:last-child td, &:last-child th': { border: 0 } }}
                 >
-                  <Typography component="span">{game.date}</Typography>
-                  <Typography component="span">
-                    {getTeam(game.opponentId)?.name ?? game.opponentId}
-                  </Typography>
-                  <Chip label={PHASE_LABELS[game.phase]} size="small" />
-                  <Chip label={result} size="small" color={resultColor(result)} />
-                  <Typography component="span">
+                  <TableCell>{game.date}</TableCell>
+                  <TableCell>
+                    <MuiLink
+                      component={RouterLink}
+                      to={`/games/${game.id}`}
+                      onClick={(event) => event.stopPropagation()}
+                    >
+                      {opponentName}
+                    </MuiLink>
+                  </TableCell>
+                  <TableCell>
+                    <Chip label={PHASE_LABELS[game.phase]} size="small" />
+                  </TableCell>
+                  <TableCell>
+                    <Chip label={result} size="small" color={resultColor(result)} />
+                  </TableCell>
+                  <TableCell>
                     {game.score.us}-{game.score.them}
-                  </Typography>
-                  {game.location && (
-                    <Typography component="span" color="text.secondary">
-                      {game.location}
-                    </Typography>
-                  )}
-                </ListItemButton>
-              </ListItem>
-            );
-          })}
-        </List>
+                  </TableCell>
+                  <TableCell>{game.location ?? '—'}</TableCell>
+                </TableRow>
+              );
+            })}
+          </TableBody>
+        </Table>
       )}
     </Box>
   );

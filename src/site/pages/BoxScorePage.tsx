@@ -57,6 +57,9 @@ export default function BoxScorePage() {
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
       <Typography variant="h4" component="h1">
+        Box Score
+      </Typography>
+      <Typography variant="subtitle1" color="text.secondary">
         {game.date}
       </Typography>
 
