@@ -48,8 +48,8 @@ function renderPage(url: string) {
   );
 }
 
-function gamesListLinks(): HTMLElement[] {
-  return within(screen.getByRole('list', { name: 'Games' })).getAllByRole('link');
+function gamesRows(): HTMLElement[] {
+  return within(screen.getByRole('table', { name: 'Games' })).getAllByRole('row').slice(1);
 }
 
 describe('GamesPage', () => {
@@ -95,14 +95,14 @@ describe('GamesPage', () => {
 
   it('lists games newest-first, each row linking to its box score', () => {
     renderPage('/games?season=2026');
-    const links = gamesListLinks();
-    expect(links.map((link) => link.getAttribute('href'))).toEqual([
+    const rows = gamesRows();
+    expect(rows.map((row) => within(row).getByRole('link').getAttribute('href'))).toEqual([
       '/games/2026-06-23-wildcats',
       '/games/2026-06-02-bandits',
       '/games/2026-05-05-hornets',
     ]);
 
-    const [playoff, roundRobin, regular] = links;
+    const [playoff, roundRobin, regular] = rows;
     for (const text of ['2026-06-23', 'Wildcats', 'Playoffs', 'W', '6-4', 'Doverfield Park']) {
       expect(within(playoff).getByText(text)).toBeInTheDocument();
     }
@@ -116,9 +116,9 @@ describe('GamesPage', () => {
 
   it('narrows the games list by the phase URL param without touching the summary', () => {
     renderPage('/games?season=2026&phase=playoff');
-    const links = gamesListLinks();
-    expect(links).toHaveLength(1);
-    expect(links[0]).toHaveAttribute('href', '/games/2026-06-23-wildcats');
+    const rows = gamesRows();
+    expect(rows).toHaveLength(1);
+    expect(within(rows[0]).getByRole('link')).toHaveAttribute('href', '/games/2026-06-23-wildcats');
     expect(screen.getByText(/Record: 2-1-0/)).toBeInTheDocument();
     expect(screen.getByRole('table', { name: 'Standings' })).toBeInTheDocument();
   });
@@ -133,16 +133,18 @@ describe('GamesPage', () => {
     expect(screen.queryByRole('heading', { name: 'Standings' })).not.toBeInTheDocument();
     expect(screen.queryByRole('heading', { name: 'Playoffs' })).not.toBeInTheDocument();
 
-    const links = gamesListLinks();
-    expect(links.map((link) => link.getAttribute('href'))).toEqual(['/games/2025-05-06-hornets']);
-    expect(within(links[0]).getByText('T')).toBeInTheDocument();
-    expect(within(links[0]).getByText('3-3')).toBeInTheDocument();
+    const rows = gamesRows();
+    expect(rows.map((row) => within(row).getByRole('link').getAttribute('href'))).toEqual([
+      '/games/2025-05-06-hornets',
+    ]);
+    expect(within(rows[0]).getByText('T')).toBeInTheDocument();
+    expect(within(rows[0]).getByText('3-3')).toBeInTheDocument();
   });
 
   it('shows an empty-state message instead of the list for a season with no games', () => {
     renderPage('/games?season=2024');
     expect(screen.getByText(/no games entered yet/i)).toBeInTheDocument();
-    expect(screen.queryByRole('list', { name: 'Games' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('table', { name: 'Games' })).not.toBeInTheDocument();
   });
 
   it('defaults to the latest season when no season param is given', () => {

@@ -88,6 +88,7 @@ import BoxScorePage from './BoxScorePage';
 describe('BoxScorePage', () => {
   it('renders header for a seed game', () => {
     renderPage('2026-05-05-hornets');
+    expect(screen.getByRole('heading', { name: 'Box Score' })).toBeInTheDocument();
     expect(screen.getByText('2026-05-05')).toBeInTheDocument();
     expect(screen.getByText('Hornets')).toBeInTheDocument();
     expect(screen.getByText('Doverfield Park')).toBeInTheDocument();
