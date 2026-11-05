@@ -3,23 +3,19 @@ import { AppBar, Box, CssBaseline, Tab, Tabs, Toolbar, Typography } from '@mui/m
 import GameEntry from './screens/GameEntry';
 import ManagePlayers from './screens/ManagePlayers';
 import ManageTeams from './screens/ManageTeams';
+import SeasonResults from './screens/SeasonResults';
 
 type ScreenId = 'game' | 'players' | 'teams' | 'results';
 
-const screens: Array<{ id: ScreenId; label: string; placeholder: string }> = [
-  { id: 'game', label: 'Game Entry', placeholder: '' },
-  { id: 'players', label: 'Players', placeholder: '' },
-  { id: 'teams', label: 'Teams', placeholder: '' },
-  {
-    id: 'results',
-    label: 'Season Results',
-    placeholder: 'Season results editing — coming in a later task.',
-  },
+const screens: Array<{ id: ScreenId; label: string }> = [
+  { id: 'game', label: 'Game Entry' },
+  { id: 'players', label: 'Players' },
+  { id: 'teams', label: 'Teams' },
+  { id: 'results', label: 'Season Results' },
 ];
 
 export default function AdminApp() {
   const [screen, setScreen] = useState<ScreenId>('game');
-  const current = screens.find((candidate) => candidate.id === screen) ?? screens[0];
 
   return (
     <>
@@ -52,12 +48,7 @@ export default function AdminApp() {
         ) : screen === 'teams' ? (
           <ManageTeams />
         ) : (
-          <>
-            <Typography variant="h5" component="h1">
-              {current.label}
-            </Typography>
-            <Typography sx={{ mt: 1 }}>{current.placeholder}</Typography>
-          </>
+          <SeasonResults />
         )}
       </Box>
     </>
