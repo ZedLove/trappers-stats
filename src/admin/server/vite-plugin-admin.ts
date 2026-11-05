@@ -5,20 +5,25 @@ import type { Connect, Plugin } from 'vite';
 import { z } from 'zod';
 import {
   GameSchema,
+  LocationSchema,
+  LocationsFileSchema,
   PlayerSchema,
   PlayersFileSchema,
   SeasonFileSchema,
   SeasonResultsSchema,
   TeamSchema,
   TeamsFileSchema,
+  type LocationsFile,
   type PlayersFile,
   type SeasonFile,
   type TeamsFile,
 } from '../../shared/schema.js';
 import {
+  applyAddLocation,
   applyAddPlayer,
   applyAddTeam,
   applyGameToSeason,
+  applyRenameLocation,
   applyRenamePlayer,
   applyRenameTeam,
   applyResults,
@@ -31,6 +36,8 @@ const SavePlayerBodySchema = z.object({ player: PlayerSchema });
 const RenamePlayerBodySchema = z.object({ id: z.string(), name: z.string() });
 const SaveTeamBodySchema = z.object({ team: TeamSchema });
 const RenameTeamBodySchema = z.object({ id: z.string(), name: z.string() });
+const SaveLocationBodySchema = z.object({ location: LocationSchema });
+const RenameLocationBodySchema = z.object({ id: z.string(), name: z.string() });
 const SaveResultsBodySchema = z.object({
   season: z.number().int(),
   results: SeasonResultsSchema,
@@ -42,6 +49,7 @@ function dataPath(...segments: string[]): string {
 
 const playersPath = () => dataPath('players.json');
 const teamsPath = () => dataPath('teams.json');
+const locationsPath = () => dataPath('locations.json');
 const seasonsDir = () => dataPath('seasons');
 const seasonPath = (season: number) => dataPath('seasons', `${season}.json`);
 
@@ -51,6 +59,10 @@ async function readPlayers(): Promise<PlayersFile> {
 
 async function readTeams(): Promise<TeamsFile> {
   return TeamsFileSchema.parse(JSON.parse(await readFile(teamsPath(), 'utf8')));
+}
+
+async function readLocations(): Promise<LocationsFile> {
+  return LocationsFileSchema.parse(JSON.parse(await readFile(locationsPath(), 'utf8')));
 }
 
 async function readSeason(season: number): Promise<SeasonFile | undefined> {
@@ -116,12 +128,13 @@ type AdminHandler = (body: Record<string, unknown>) => Promise<{ status: number;
 const handlers: Record<string, Record<string, AdminHandler>> = {
   GET: {
     '/state': async () => {
-      const [players, teams, seasons] = await Promise.all([
+      const [players, teams, locations, seasons] = await Promise.all([
         readPlayers(),
         readTeams(),
+        readLocations(),
         readAllSeasons(),
       ]);
-      return { status: 200, body: { players, teams, seasons } };
+      return { status: 200, body: { players, teams, locations, seasons } };
     },
   },
   POST: {
@@ -158,6 +171,20 @@ const handlers: Record<string, Record<string, AdminHandler>> = {
       const current = await readTeams();
       const updated = applyRenameTeam(current, id, name);
       await writeJsonAtomic(teamsPath(), updated);
+      return { status: 200, body: updated };
+    },
+    '/save-location': async (body) => {
+      const { location } = SaveLocationBodySchema.parse(body);
+      const current = await readLocations();
+      const updated = applyAddLocation(current, location);
+      await writeJsonAtomic(locationsPath(), updated);
+      return { status: 200, body: updated };
+    },
+    '/rename-location': async (body) => {
+      const { id, name } = RenameLocationBodySchema.parse(body);
+      const current = await readLocations();
+      const updated = applyRenameLocation(current, id, name);
+      await writeJsonAtomic(locationsPath(), updated);
       return { status: 200, body: updated };
     },
     '/save-results': async (body) => {

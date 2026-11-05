@@ -11,7 +11,7 @@ import {
 } from '@mui/material';
 import { useParams } from 'react-router-dom';
 import { Link as RouterLink } from 'react-router-dom';
-import { getPlayer, getTeam, seasons } from '../../shared/data';
+import { getLocation, getPlayer, getTeam, seasons } from '../../shared/data';
 import { gameWarnings } from '../../shared/validate';
 import type { Game, Phase } from '../../shared/schema';
 import NotFound from './NotFound';
@@ -66,9 +66,9 @@ export default function BoxScorePage() {
       <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', flexWrap: 'wrap' }}>
         <Chip label={PHASE_LABELS[game.phase]} size="small" />
         <Typography component="span">{opponentName}</Typography>
-        {game.location && (
+        {getLocation(game.locationId)?.name && (
           <Typography component="span" color="text.secondary">
-            {game.location}
+            {getLocation(game.locationId)?.name}
           </Typography>
         )}
         <Typography component="span">

@@ -3,6 +3,7 @@ import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   GameSchema,
+  type LocationsFile,
   type PlayersFile,
   type SeasonFile,
   type TeamsFile,
@@ -27,6 +28,12 @@ const STATE = {
       { id: 'hornets', name: 'Hornets' },
     ],
   } satisfies TeamsFile,
+  locations: {
+    locations: [
+      { id: 'doverfield-park', name: 'Doverfield Park' },
+      { id: 'riverbend-field', name: 'Riverbend Field' },
+    ],
+  } satisfies LocationsFile,
   seasons: [{ season: 2026, division: null, games: [] }] satisfies SeasonFile[],
 };
 

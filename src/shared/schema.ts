@@ -27,6 +27,17 @@ export const TeamsFileSchema = z.object({
 });
 export type TeamsFile = z.infer<typeof TeamsFileSchema>;
 
+export const LocationSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+});
+export type Location = z.infer<typeof LocationSchema>;
+
+export const LocationsFileSchema = z.object({
+  locations: z.array(LocationSchema),
+});
+export type LocationsFile = z.infer<typeof LocationsFileSchema>;
+
 export const PlayerLineSchema = z
   .object({
     playerId: z.string(),
@@ -64,7 +75,7 @@ export const GameSchema = z
     date: calendarDateSchema,
     phase: phaseSchema,
     opponentId: z.string(),
-    location: z.string().optional(),
+    locationId: z.string().optional(),
     score: z.object({
       us: nonNegativeIntegerSchema,
       them: nonNegativeIntegerSchema,

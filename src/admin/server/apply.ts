@@ -1,5 +1,7 @@
 import type {
   Game,
+  Location,
+  LocationsFile,
   Player,
   PlayersFile,
   SeasonFile,
@@ -92,6 +94,34 @@ export function applyRenameTeam(
   }
   return {
     teams: teams.teams.map((team) => (team.id === id ? { ...team, name } : team)),
+  };
+}
+
+export function applyAddLocation(locations: LocationsFile, location: Location): LocationsFile {
+  if (locations.locations.some((existing) => existing.id === location.id)) {
+    throw new Error(`Duplicate location id "${location.id}"`);
+  }
+  if (locations.locations.some((existing) => existing.name === location.name)) {
+    throw new Error(`Duplicate location name "${location.name}"`);
+  }
+  return { locations: [...locations.locations, location] };
+}
+
+export function applyRenameLocation(
+  locations: LocationsFile,
+  id: string,
+  name: string,
+): LocationsFile {
+  if (!locations.locations.some((location) => location.id === id)) {
+    throw new Error(`Unknown location id "${id}"`);
+  }
+  if (locations.locations.some((location) => location.id !== id && location.name === name)) {
+    throw new Error(`Duplicate location name "${name}"`);
+  }
+  return {
+    locations: locations.locations.map((location) =>
+      location.id === id ? { ...location, name } : location,
+    ),
   };
 }
 

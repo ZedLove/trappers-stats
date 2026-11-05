@@ -4,6 +4,8 @@ import {
   PlayersFileSchema,
   TeamSchema,
   TeamsFileSchema,
+  LocationSchema,
+  LocationsFileSchema,
   PlayerLineSchema,
   GameSchema,
   SeasonResultsSchema,
@@ -16,6 +18,9 @@ const validPlayersFile = { players: [validPlayer] };
 const usTeam = { id: 'trappers', name: 'Trappers', us: true as const };
 const opponentTeam = { id: 'eagles', name: 'Eagles' };
 const validTeamsFile = { teams: [usTeam, opponentTeam] };
+
+const validLocation = { id: 'doverfield-park', name: 'Doverfield Park' };
+const validLocationsFile = { locations: [validLocation] };
 
 const validLine = {
   playerId: 'mike-s-1',
@@ -35,7 +40,7 @@ const validGame = {
   date: '2026-05-12',
   phase: 'regular' as const,
   opponentId: 'eagles',
-  location: 'Doverfield Park',
+  locationId: 'doverfield-park',
   score: { us: 14, them: 9 },
   lines: [validLine],
 };
@@ -109,6 +114,30 @@ describe('TeamsFileSchema', () => {
 
   it('rejects a teams file missing the teams array', () => {
     expect(TeamsFileSchema.safeParse({}).success).toBe(false);
+  });
+});
+
+describe('LocationSchema', () => {
+  it('accepts a valid location', () => {
+    expect(LocationSchema.safeParse(validLocation).success).toBe(true);
+  });
+
+  it('rejects a location with a non-string id', () => {
+    expect(LocationSchema.safeParse({ ...validLocation, id: 1 }).success).toBe(false);
+  });
+
+  it('rejects a location with a non-string name', () => {
+    expect(LocationSchema.safeParse({ ...validLocation, name: null }).success).toBe(false);
+  });
+});
+
+describe('LocationsFileSchema', () => {
+  it('accepts a valid locations file', () => {
+    expect(LocationsFileSchema.safeParse(validLocationsFile).success).toBe(true);
+  });
+
+  it('rejects a locations file missing the locations array', () => {
+    expect(LocationsFileSchema.safeParse({}).success).toBe(false);
   });
 });
 

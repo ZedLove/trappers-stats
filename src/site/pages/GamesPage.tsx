@@ -10,7 +10,7 @@ import {
   Typography,
 } from '@mui/material';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
-import { getSeason, getTeam, latestSeason } from '../../shared/data';
+import { getLocation, getSeason, getTeam, latestSeason } from '../../shared/data';
 import { filterGames, sortGamesByDate, teamRecord } from '../../shared/queries';
 import type { Game, Phase } from '../../shared/schema';
 import PlayoffResults from '../components/PlayoffResults';
@@ -137,7 +137,7 @@ export default function GamesPage() {
                   <TableCell>
                     {game.score.us}-{game.score.them}
                   </TableCell>
-                  <TableCell>{game.location ?? '—'}</TableCell>
+                  <TableCell>{getLocation(game.locationId)?.name ?? '—'}</TableCell>
                 </TableRow>
               );
             })}
