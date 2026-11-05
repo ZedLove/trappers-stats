@@ -67,7 +67,7 @@ function StatsTable({ ariaLabel, rows }: { ariaLabel: string; rows: DerivedStats
       <TableHead>
         <TableRow>
           {STAT_HEADERS.map((header) => (
-            <TableCell key={header} align="right">
+            <TableCell key={header} align="center">
               {header}
             </TableCell>
           ))}
@@ -123,7 +123,7 @@ export default function PlayerPage() {
           <TableRow>
             <TableCell>Season</TableCell>
             {STAT_HEADERS.map((header) => (
-              <TableCell key={header} align="right">
+              <TableCell key={header} align="center">
                 {header}
               </TableCell>
             ))}
@@ -155,16 +155,16 @@ export default function PlayerPage() {
               <TableCell>Date</TableCell>
               <TableCell>Opponent</TableCell>
               <TableCell>Phase</TableCell>
-              <TableCell align="right">AB</TableCell>
-              <TableCell align="right">H</TableCell>
-              <TableCell align="right">1B</TableCell>
-              <TableCell align="right">2B</TableCell>
-              <TableCell align="right">3B</TableCell>
-              <TableCell align="right">HR</TableCell>
-              <TableCell align="right">BB</TableCell>
-              <TableCell align="right">SF</TableCell>
-              <TableCell align="right">K</TableCell>
-              <TableCell align="right">R</TableCell>
+              <TableCell align="center">AB</TableCell>
+              <TableCell align="center">H</TableCell>
+              <TableCell align="center">1B</TableCell>
+              <TableCell align="center">2B</TableCell>
+              <TableCell align="center">3B</TableCell>
+              <TableCell align="center">HR</TableCell>
+              <TableCell align="center">BB</TableCell>
+              <TableCell align="center">SF</TableCell>
+              <TableCell align="center">K</TableCell>
+              <TableCell align="center">R</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>

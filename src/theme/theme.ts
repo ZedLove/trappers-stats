@@ -40,12 +40,6 @@ function zebraOverrides(tint: string) {
             fontWeight: 600,
             color: theme.palette.secondary.main,
           },
-          // Best value in a column gets a stronger emphasis + a teal tint.
-          // Kept after `.rate-stat` so a leader that is also a rate stat wins.
-          '& .leader': {
-            fontWeight: 700,
-            backgroundColor: alpha(theme.palette.secondary.main, 0.14),
-          },
         }),
       },
     },

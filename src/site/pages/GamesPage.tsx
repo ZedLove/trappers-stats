@@ -104,7 +104,7 @@ export default function GamesPage() {
               <TableCell>Opponent</TableCell>
               <TableCell>Phase</TableCell>
               <TableCell>Result</TableCell>
-              <TableCell align="right">Score</TableCell>
+              <TableCell align="center">Score</TableCell>
               <TableCell>Location</TableCell>
             </TableRow>
           </TableHead>
