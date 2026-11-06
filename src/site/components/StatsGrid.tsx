@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Box, Link as MuiLink, TextField, useMediaQuery, useTheme } from '@mui/material';
+import { Box, Link as MuiLink, TextField } from '@mui/material';
 import { DataGrid, type GridColDef } from '@mui/x-data-grid';
 import { SearchX } from 'lucide-react';
 import { Link as RouterLink } from 'react-router-dom';
@@ -128,8 +128,6 @@ function buildColumns(): GridColDef[] {
 // makes the grid state match (nulls sort last under descending order, and the
 // stable sort keeps the PA tiebreak for equal averages).
 export default function StatsGrid({ rows }: StatsGridProps) {
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const [query, setQuery] = useState('');
 
   const gridRows = useMemo<PlayerStatRow[]>(
@@ -177,21 +175,26 @@ export default function StatsGrid({ rows }: StatsGridProps) {
           title="No players found"
           message={`No players match “${query.trim()}”.`}
         />
-      ) : isMobile ? (
-        <StatsCards rows={visibleRows} />
       ) : (
-        <DataGrid
-          rows={visibleRows}
-          columns={columns}
-          getRowId={(row) => row.playerId}
-          getRowClassName={(params) =>
-            params.indexRelativeToCurrentPage % 2 === 1 ? 'MuiDataGrid-row--striped' : ''
-          }
-          autoHeight
-          hideFooter
-          disableRowSelectionOnClick
-          initialState={{ sorting: { sortModel: [{ field: 'avg', sort: 'desc' }] } }}
-        />
+        <>
+          <Box sx={{ display: { xs: 'none', sm: 'block' } }} data-testid="stats-grid">
+            <DataGrid
+              rows={visibleRows}
+              columns={columns}
+              getRowId={(row) => row.playerId}
+              getRowClassName={(params) =>
+                params.indexRelativeToCurrentPage % 2 === 1 ? 'MuiDataGrid-row--striped' : ''
+              }
+              autoHeight
+              hideFooter
+              disableRowSelectionOnClick
+              initialState={{ sorting: { sortModel: [{ field: 'avg', sort: 'desc' }] } }}
+            />
+          </Box>
+          <Box sx={{ display: { xs: 'block', sm: 'none' } }} data-testid="stats-cards">
+            <StatsCards rows={visibleRows} />
+          </Box>
+        </>
       )}
     </Box>
   );
