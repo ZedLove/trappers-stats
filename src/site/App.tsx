@@ -25,7 +25,7 @@ export default function App() {
   };
 
   return (
-    <>
+    <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
       <AppBar position="sticky">
         <Toolbar>
           <Box
@@ -76,15 +76,15 @@ export default function App() {
           </IconButton>
         </Toolbar>
       </AppBar>
-      <Box component="main" sx={{ p: { xs: 1.5, sm: 2 } }}>
+      <Box component="main" sx={{ p: { xs: 1.5, sm: 2 }, flexGrow: 1 }}>
         <SiteBreadcrumbs />
         <Outlet />
-        <Box component="footer" sx={{ mt: 4, py: 2, textAlign: 'center' }}>
-          <Typography variant="caption" color="text.secondary">
-            © 2026 Tri-City Trappers Slo-Pitch Club
-          </Typography>
-        </Box>
       </Box>
-    </>
+      <Box component="footer" sx={{ py: 2, textAlign: 'center' }}>
+        <Typography variant="caption" color="text.secondary">
+          © 2026 Tri-City Trappers Slo-Pitch Club
+        </Typography>
+      </Box>
+    </Box>
   );
 }
