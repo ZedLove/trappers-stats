@@ -55,7 +55,7 @@ function gamesRows(): HTMLElement[] {
 describe('GamesPage', () => {
   it('renders the summary line with record, division, and finishing position', () => {
     renderPage('/games?season=2026');
-    expect(screen.getByRole('heading', { name: 'Games' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Games', level: 1 })).toBeInTheDocument();
     const summary = screen.getByText(/Record: 2-1-0/);
     expect(summary).toHaveTextContent('Division B');
     expect(summary).toHaveTextContent('Finished 2nd');

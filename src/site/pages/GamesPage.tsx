@@ -2,6 +2,7 @@ import {
   Box,
   Chip,
   Link as MuiLink,
+  Paper,
   Table,
   TableBody,
   TableCell,
@@ -90,65 +91,78 @@ export default function GamesPage() {
       </Typography>
       <SeasonPhaseControls showAllTime={false} />
       <Typography>{summaryParts.join(' · ')}</Typography>
-      {standings.length > 0 && <StandingsTable standings={standings} />}
-      {playoffs.length > 0 && <PlayoffResults playoffs={playoffs} />}
-      {games.length === 0 ? (
-        <EmptyState
-          title="No games yet"
-          message="Games will appear here once the season gets going."
-        />
-      ) : (
-        <TableContainer>
-          <Table aria-label="Games" size="small">
-            <TableHead>
-              <TableRow>
-                <TableCell align="center">Date</TableCell>
-                <TableCell align="center">Opponent</TableCell>
-                <TableCell align="center">Phase</TableCell>
-                <TableCell align="center">Result</TableCell>
-                <TableCell align="center">Score</TableCell>
-                <TableCell align="center">Location</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {games.map((game) => {
-                const result = gameResult(game);
-                const opponentName = getTeam(game.opponentId)?.name ?? game.opponentId;
-                return (
-                  <TableRow
-                    key={game.id}
-                    hover
-                    onClick={() => navigate(`/games/${game.id}`)}
-                    sx={{ cursor: 'pointer', '&:last-child td, &:last-child th': { border: 0 } }}
-                  >
-                    <TableCell align="center">{game.date}</TableCell>
-                    <TableCell>
-                      <MuiLink
-                        component={RouterLink}
-                        to={`/games/${game.id}`}
-                        onClick={(event) => event.stopPropagation()}
-                        color="secondary"
-                      >
-                        {opponentName}
-                      </MuiLink>
-                    </TableCell>
-                    <TableCell align="center">
-                      <Chip label={PHASE_LABELS[game.phase]} size="small" color={phaseColor(game.phase)} />
-                    </TableCell>
-                    <TableCell align="center">
-                      <Chip label={result} size="small" color={resultColor(result)} />
-                    </TableCell>
-                    <TableCell align="center">
-                      {game.score.us}-{game.score.them}
-                    </TableCell>
-                    <TableCell align="center">{getLocation(game.locationId)?.name ?? '—'}</TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
-        </TableContainer>
+      {standings.length > 0 && (
+        <Paper variant="outlined" sx={{ p: 2 }}>
+          <StandingsTable standings={standings} />
+        </Paper>
       )}
+      {playoffs.length > 0 && (
+        <Paper variant="outlined" sx={{ p: 2 }}>
+          <PlayoffResults playoffs={playoffs} />
+        </Paper>
+      )}
+      <Paper variant="outlined" sx={{ p: 2 }}>
+        <Typography variant="h6" component="h2">
+          Games
+        </Typography>
+        {games.length === 0 ? (
+          <EmptyState
+            title="No games yet"
+            message="Games will appear here once the season gets going."
+          />
+        ) : (
+          <TableContainer>
+            <Table aria-label="Games" size="small">
+              <TableHead>
+                <TableRow>
+                  <TableCell align="left">Date</TableCell>
+                  <TableCell align="left">Opponent</TableCell>
+                  <TableCell align="left">Phase</TableCell>
+                  <TableCell align="left">Result</TableCell>
+                  <TableCell align="left">Score</TableCell>
+                  <TableCell align="left">Location</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {games.map((game) => {
+                  const result = gameResult(game);
+                  const opponentName = getTeam(game.opponentId)?.name ?? game.opponentId;
+                  return (
+                    <TableRow
+                      key={game.id}
+                      hover
+                      onClick={() => navigate(`/games/${game.id}`)}
+                      sx={{ cursor: 'pointer', '&:last-child td, &:last-child th': { border: 0 } }}
+                    >
+                      <TableCell align="left">{game.date}</TableCell>
+                      <TableCell align="left">
+                        <MuiLink
+                          component={RouterLink}
+                          to={`/games/${game.id}`}
+                          onClick={(event) => event.stopPropagation()}
+                          color="secondary"
+                        >
+                          {opponentName}
+                        </MuiLink>
+                      </TableCell>
+                      <TableCell align="left">
+                        <Chip label={PHASE_LABELS[game.phase]} size="small" color={phaseColor(game.phase)} />
+                      </TableCell>
+                      <TableCell align="left">
+                        <Chip label={result} size="small" color={resultColor(result)} />
+                      </TableCell>
+                      <TableCell align="left">
+                        {game.score.us}-{game.score.them}
+                      </TableCell>
+                      <TableCell align="left">{getLocation(game.locationId)?.name ?? '—'}</TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        )}
+      </Paper>
     </Box>
   );
 }
