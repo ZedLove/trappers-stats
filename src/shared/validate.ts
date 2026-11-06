@@ -75,6 +75,16 @@ export function gameWarnings(game: Game): string[] {
     if (lineRuns !== game.score.us) {
       warnings.push(`Player-line runs (${lineRuns}) do not match team score (${game.score.us})`);
     }
+    if (game.innings) {
+      const usRuns = game.innings.reduce((total, inning) => total + inning.us, 0);
+      if (usRuns !== game.score.us) {
+        warnings.push(`Innings runs (${usRuns}) do not match team score (${game.score.us})`);
+      }
+      const themRuns = game.innings.reduce((total, inning) => total + inning.them, 0);
+      if (themRuns !== game.score.them) {
+        warnings.push(`Innings runs (${themRuns}) do not match opponent score (${game.score.them})`);
+      }
+    }
     if (game.lines.length < 5) {
       warnings.push(`Game has fewer than five player lines (${game.lines.length})`);
     }

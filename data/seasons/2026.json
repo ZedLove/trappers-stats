@@ -7,8 +7,21 @@
       "date": "2026-05-05",
       "phase": "regular",
       "opponentId": "hornets",
+      "isHome": true,
       "locationId": "doverfield-park",
       "score": { "us": 7, "them": 5 },
+      "opponentHits": 9,
+      "innings": [
+        { "us": 1, "them": 0 },
+        { "us": 0, "them": 2 },
+        { "us": 2, "them": 0 },
+        { "us": 0, "them": 1 },
+        { "us": 1, "them": 0 },
+        { "us": 0, "them": 0 },
+        { "us": 3, "them": 2 },
+        { "us": 0, "them": 0 },
+        { "us": 0, "them": 0 }
+      ],
       "lines": [
         { "playerId": "z-man", "ab": 4, "1b": 2, "2b": 0, "3b": 0, "hr": 0, "bb": 0, "sf": 0, "k": 0, "r": 2 },
         { "playerId": "stretch", "ab": 3, "1b": 1, "2b": 1, "3b": 0, "hr": 0, "bb": 1, "sf": 0, "k": 1, "r": 1 },
@@ -23,6 +36,7 @@
       "date": "2026-06-02",
       "phase": "round_robin",
       "opponentId": "bandits",
+      "isHome": false,
       "locationId": "riverbend-field",
       "score": { "us": 5, "them": 9 },
       "lines": [
@@ -39,6 +53,7 @@
       "date": "2026-06-23",
       "phase": "playoff",
       "opponentId": "wildcats",
+      "isHome": true,
       "locationId": "doverfield-park",
       "score": { "us": 6, "them": 4 },
       "lines": [

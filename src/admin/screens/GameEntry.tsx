@@ -72,6 +72,7 @@ const defaultValues: Game = {
   date: '',
   phase: 'regular',
   opponentId: '',
+  isHome: true,
   locationId: '',
   score: { us: 0, them: 0 },
   lines: [emptyLine()],

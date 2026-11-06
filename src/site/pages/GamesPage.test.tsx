@@ -20,6 +20,7 @@ vi.mock('../../shared/data', async (importActual) => {
           date: '2025-05-06',
           phase: 'regular',
           opponentId: 'hornets',
+          isHome: true,
           score: { us: 3, them: 3 },
           lines: [],
         },

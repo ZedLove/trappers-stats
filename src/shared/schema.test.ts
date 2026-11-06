@@ -40,6 +40,7 @@ const validGame = {
   date: '2026-05-12',
   phase: 'regular' as const,
   opponentId: 'eagles',
+  isHome: true,
   locationId: 'doverfield-park',
   score: { us: 14, them: 9 },
   lines: [validLine],
@@ -203,6 +204,48 @@ describe('GameSchema', () => {
 
   it('rejects a negative score', () => {
     expect(GameSchema.safeParse({ ...validGame, score: { us: -1, them: 0 } }).success).toBe(false);
+  });
+
+  it('rejects a game missing isHome', () => {
+    expect(GameSchema.safeParse({ ...validGame, isHome: undefined }).success).toBe(false);
+  });
+
+  it('rejects a non-boolean isHome', () => {
+    expect(GameSchema.safeParse({ ...validGame, isHome: 'yes' }).success).toBe(false);
+  });
+
+  it('accepts an innings array of non-negative integer { us, them } entries', () => {
+    const withInnings = {
+      ...validGame,
+      innings: [
+        { us: 2, them: 1 },
+        { us: 0, them: 0 },
+        { us: 12, them: 8 },
+      ],
+    };
+    expect(GameSchema.safeParse(withInnings).success).toBe(true);
+  });
+
+  it('rejects a negative innings run', () => {
+    const invalid = { ...validGame, innings: [{ us: 0, them: -1 }] };
+    expect(GameSchema.safeParse(invalid).success).toBe(false);
+  });
+
+  it('rejects a fractional innings run', () => {
+    const invalid = { ...validGame, innings: [{ us: 1.5, them: 0 }] };
+    expect(GameSchema.safeParse(invalid).success).toBe(false);
+  });
+
+  it('accepts an optional non-negative integer opponentHits', () => {
+    expect(GameSchema.safeParse({ ...validGame, opponentHits: 9 }).success).toBe(true);
+  });
+
+  it('rejects a negative opponentHits', () => {
+    expect(GameSchema.safeParse({ ...validGame, opponentHits: -1 }).success).toBe(false);
+  });
+
+  it('rejects a fractional opponentHits', () => {
+    expect(GameSchema.safeParse({ ...validGame, opponentHits: 2.5 }).success).toBe(false);
   });
 });
 

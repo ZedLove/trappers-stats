@@ -16,6 +16,7 @@ vi.mock('../../shared/data', async (importActual) => {
           date: '2025-05-06',
           phase: 'regular',
           opponentId: 'hornets',
+          isHome: true,
           locationId: 'doverfield-park',
           score: { us: 5, them: 3 },
           lines: [
@@ -38,6 +39,7 @@ vi.mock('../../shared/data', async (importActual) => {
           date: '2025-05-07',
           phase: 'regular',
           opponentId: 'hornets',
+          isHome: false,
           score: { us: 1, them: 2 },
           lines: [
             {
