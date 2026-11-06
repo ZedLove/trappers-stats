@@ -1,13 +1,4 @@
-import {
-  AppBar,
-  Box,
-  Button,
-  IconButton,
-  Toolbar,
-  Typography,
-  useMediaQuery,
-  useTheme,
-} from '@mui/material';
+import { AppBar, Box, Button, IconButton, Toolbar, Typography, useTheme } from '@mui/material';
 import { BarChart3, CalendarDays, Moon, Sun } from 'lucide-react';
 import { Link, NavLink, Outlet } from 'react-router-dom';
 import SiteBreadcrumbs from './components/SiteBreadcrumbs';
@@ -18,7 +9,6 @@ export default function App() {
   const { mode, toggle } = useThemeMode();
   const theme = useTheme();
   const isDark = mode === 'dark';
-  const isPhone = useMediaQuery(theme.breakpoints.down('sm'));
 
   // Active nav gets a teal underline/color so the current tab reads clearly
   // against the navy AppBar in both light and dark mode.
@@ -44,37 +34,36 @@ export default function App() {
             alt="Trappers logo"
             sx={{ width: 36, height: 36, objectFit: 'contain', borderRadius: '8px', mr: 1.5 }}
           />
-          {isPhone ? (
-            <Box sx={{ flexGrow: 1 }} />
-          ) : (
-            <Typography
-              variant="h6"
-              component={Link}
-              to="/"
-              sx={{ color: 'inherit', textDecoration: 'none', flexGrow: 1 }}
-            >
-              Trappers
-            </Typography>
-          )}
-          {isPhone ? (
-            <>
-              <IconButton component={NavLink} to="/" end color="inherit" sx={navLinkSx} aria-label="Stats">
-                <BarChart3 size={20} />
-              </IconButton>
-              <IconButton component={NavLink} to="/games" color="inherit" sx={navLinkSx} aria-label="Games">
-                <CalendarDays size={20} />
-              </IconButton>
-            </>
-          ) : (
-            <>
-              <Button component={NavLink} to="/" end sx={navLinkSx} startIcon={<BarChart3 size={18} />}>
-                Stats
-              </Button>
-              <Button component={NavLink} to="/games" sx={navLinkSx} startIcon={<CalendarDays size={18} />}>
-                Games
-              </Button>
-            </>
-          )}
+          <Typography
+            variant="h6"
+            component={Link}
+            to="/"
+            sx={{
+              color: 'inherit',
+              textDecoration: 'none',
+              flexGrow: 1,
+              display: { xs: 'none', sm: 'block' },
+            }}
+          >
+            Trappers
+          </Typography>
+          <Box sx={{ flexGrow: 1, display: { xs: 'block', sm: 'none' } }} />
+          <Box sx={{ display: { xs: 'inline-flex', sm: 'none' } }}>
+            <IconButton component={NavLink} to="/" end color="inherit" sx={navLinkSx} aria-label="Stats">
+              <BarChart3 size={20} />
+            </IconButton>
+            <IconButton component={NavLink} to="/games" color="inherit" sx={navLinkSx} aria-label="Games">
+              <CalendarDays size={20} />
+            </IconButton>
+          </Box>
+          <Box sx={{ display: { xs: 'none', sm: 'inline-flex' } }}>
+            <Button component={NavLink} to="/" end sx={navLinkSx} startIcon={<BarChart3 size={18} />}>
+              Stats
+            </Button>
+            <Button component={NavLink} to="/games" sx={navLinkSx} startIcon={<CalendarDays size={18} />}>
+              Games
+            </Button>
+          </Box>
           <IconButton color="inherit" onClick={toggle} aria-label="Toggle theme" aria-pressed={isDark}>
             {isDark ? <Sun size={22} /> : <Moon size={22} />}
           </IconButton>

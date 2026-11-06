@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
-import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import { MemoryRouter, useLocation } from 'react-router-dom';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
 import type { PlayerLine } from '../../shared/schema';
 import { deriveStats, sumLines } from '../../shared/stats';
 import StatsPage from '../pages/StatsPage';
@@ -10,7 +10,6 @@ import StatsGrid from './StatsGrid';
 
 afterEach(() => {
   cleanup();
-  vi.unstubAllGlobals();
 });
 
 function makeLine(playerId: string, overrides: Partial<PlayerLine> = {}): PlayerLine {
@@ -51,8 +50,18 @@ function renderGrid(rows = FIXTURE_ROWS) {
   );
 }
 
+// The DataGrid and the card list are both always mounted; CSS media queries
+// decide which one is visible. Tests scope queries to one or the other.
+function gridContainer(): HTMLElement {
+  return screen.getByTestId('stats-grid');
+}
+
+function cardList(): HTMLElement {
+  return screen.getByTestId('stats-cards');
+}
+
 function playerRow(name: string): HTMLElement {
-  const row = screen.getByRole('link', { name }).closest('[role="row"]');
+  const row = within(gridContainer()).getByRole('link', { name }).closest('[role="row"]');
   expect(row).not.toBeNull();
   return row as HTMLElement;
 }
@@ -66,7 +75,11 @@ function cellText(row: HTMLElement, field: string): string {
 describe('StatsGrid', () => {
   it('renders the columns in spec order', () => {
     renderGrid();
-    expect(screen.getAllByRole('columnheader').map((header) => header.textContent)).toEqual([
+    expect(
+      within(gridContainer())
+        .getAllByRole('columnheader')
+        .map((header) => header.textContent),
+    ).toEqual([
       'Player',
       'G',
       'PA',
@@ -108,11 +121,11 @@ describe('StatsGrid', () => {
 
   it('sorts by AVG descending by default (nulls last) and links player names', () => {
     renderGrid();
-    expect(screen.getAllByRole('link').map((link) => link.getAttribute('href'))).toEqual([
-      '/players/stretch',
-      '/players/z-man',
-      '/players/jo-jo',
-    ]);
+    expect(
+      within(gridContainer())
+        .getAllByRole('link')
+        .map((link) => link.getAttribute('href')),
+    ).toEqual(['/players/stretch', '/players/z-man', '/players/jo-jo']);
   });
 
   it('shows a friendly message for an empty season instead of crashing', () => {
@@ -125,37 +138,18 @@ describe('StatsGrid', () => {
     fireEvent.change(screen.getByRole('textbox', { name: 'Search players' }), {
       target: { value: 'z-ma' },
     });
-    expect(screen.getAllByRole('link')).toHaveLength(1);
-    expect(screen.getByRole('link', { name: 'Z-Man' })).toBeInTheDocument();
-    expect(screen.queryByRole('link', { name: 'Stretch' })).not.toBeInTheDocument();
+    expect(within(gridContainer()).getAllByRole('link')).toHaveLength(1);
+    expect(within(gridContainer()).getByRole('link', { name: 'Z-Man' })).toBeInTheDocument();
+    expect(within(gridContainer()).queryByRole('link', { name: 'Stretch' })).not.toBeInTheDocument();
   });
 });
-
-// jsdom has no `matchMedia`, so MUI's useMediaQuery falls back to its default
-// (`false`) unless we stub the global. Returning `matches` for every query is
-// enough for these tests: only `theme.breakpoints.down('sm')` is consulted.
-function stubMatchMedia(matches: boolean) {
-  vi.stubGlobal(
-    'matchMedia',
-    vi.fn().mockImplementation((query: string) => ({
-      matches,
-      media: query,
-      onchange: null,
-      addListener: vi.fn(),
-      removeListener: vi.fn(),
-      addEventListener: vi.fn(),
-      removeEventListener: vi.fn(),
-      dispatchEvent: vi.fn(),
-    })),
-  );
-}
 
 // leaderboard() hands StatsGrid rows in AVG-desc order and the cards must
 // preserve it (the grid itself re-sorts scrambled input via its sort model).
 const LEADERBOARD_ROWS = [...FIXTURE_ROWS].reverse();
 
 function playerCard(name: string): HTMLElement {
-  const card = screen.getByRole('link', { name }).closest('li');
+  const card = within(cardList()).getByRole('link', { name }).closest('li');
   expect(card).not.toBeNull();
   return card as HTMLElement;
 }
@@ -168,19 +162,18 @@ function cardStat(card: HTMLElement, field: string): string {
 
 describe('StatsGrid — mobile cards', () => {
   it('renders ranked player cards with links and formatted stats', () => {
-    stubMatchMedia(true);
     renderGrid(LEADERBOARD_ROWS);
 
-    expect(screen.getAllByTestId('rank-badge').map((el) => el.textContent)).toEqual([
+    expect(within(cardList()).getAllByTestId('rank-badge').map((el) => el.textContent)).toEqual([
       '1',
       '2',
       '3',
     ]);
-    expect(screen.getAllByRole('link').map((link) => link.getAttribute('href'))).toEqual([
-      '/players/stretch',
-      '/players/z-man',
-      '/players/jo-jo',
-    ]);
+    expect(
+      within(cardList())
+        .getAllByRole('link')
+        .map((link) => link.getAttribute('href')),
+    ).toEqual(['/players/stretch', '/players/z-man', '/players/jo-jo']);
 
     const stretch = playerCard('Stretch');
     expect(cardStat(stretch, 'g')).toBe('1');
@@ -197,49 +190,88 @@ describe('StatsGrid — mobile cards', () => {
     expect(cardStat(joJo, 'ops')).toBe('—');
   });
 
-  it('renders the DataGrid on wider viewports', () => {
-    stubMatchMedia(false);
+  it('mounts both the DataGrid and the card list, leaving visibility to CSS', () => {
     renderGrid();
-    expect(screen.getAllByRole('columnheader').map((header) => header.textContent)).toEqual([
-      'Player',
-      'G',
-      'PA',
-      'AB',
-      'R',
-      'H',
-      '1B',
-      '2B',
-      '3B',
-      'HR',
-      'BB',
-      'SO',
-      'AVG',
-      'OBP',
-      'SLG',
-      'OPS',
-    ]);
-    expect(screen.queryByTestId('rank-badge')).not.toBeInTheDocument();
+    expect(gridContainer()).toBeInTheDocument();
+    expect(cardList()).toBeInTheDocument();
   });
 
   it('narrows the card list by player name', () => {
-    stubMatchMedia(true);
     renderGrid(LEADERBOARD_ROWS);
     fireEvent.change(screen.getByRole('textbox', { name: 'Search players' }), {
       target: { value: 'z-ma' },
     });
-    expect(screen.getAllByRole('link')).toHaveLength(1);
-    expect(screen.getByRole('link', { name: 'Z-Man' })).toBeInTheDocument();
-    expect(screen.getByTestId('rank-badge')).toHaveTextContent('1');
+    expect(within(cardList()).getAllByRole('link')).toHaveLength(1);
+    expect(within(cardList()).getByRole('link', { name: 'Z-Man' })).toBeInTheDocument();
+    expect(within(cardList()).queryByRole('link', { name: 'Stretch' })).not.toBeInTheDocument();
+    expect(within(cardList()).getByTestId('rank-badge')).toHaveTextContent('1');
   });
 
   it('shows an empty state when the search matches no players', () => {
-    stubMatchMedia(true);
     renderGrid(LEADERBOARD_ROWS);
     fireEvent.change(screen.getByRole('textbox', { name: 'Search players' }), {
       target: { value: 'nobody' },
     });
     expect(screen.getByText(/no players found/i)).toBeInTheDocument();
     expect(screen.queryByTestId('rank-badge')).not.toBeInTheDocument();
+  });
+});
+
+describe('StatsGrid — card expansion', () => {
+  it('keeps detail stats hidden while a card is collapsed', () => {
+    renderGrid(LEADERBOARD_ROWS);
+    const stretch = playerCard('Stretch');
+    expect(within(stretch).queryByTestId('stat-pa')).not.toBeInTheDocument();
+    expect(within(stretch).queryByTestId('stat-ab')).not.toBeInTheDocument();
+  });
+
+  it('reveals the detail stat grid when expanded and hides it again when collapsed', () => {
+    renderGrid(LEADERBOARD_ROWS);
+    const stretch = playerCard('Stretch');
+
+    const expand = within(stretch).getByRole('button', { name: 'Show all stats for Stretch' });
+    expect(expand).toHaveAttribute('aria-expanded', 'false');
+    fireEvent.click(expand);
+
+    expect(within(stretch).getByTestId('stat-pa')).toHaveTextContent('4');
+    expect(within(stretch).getByTestId('stat-ab')).toHaveTextContent('4');
+    expect(within(stretch).getByTestId('stat-r')).toHaveTextContent('0');
+    expect(within(stretch).getByTestId('stat-h')).toHaveTextContent('2');
+    expect(within(stretch).getByTestId('stat-singles')).toHaveTextContent('1');
+    expect(within(stretch).getByTestId('stat-doubles')).toHaveTextContent('0');
+    expect(within(stretch).getByTestId('stat-triples')).toHaveTextContent('0');
+    expect(within(stretch).getByTestId('stat-hr')).toHaveTextContent('1');
+    expect(within(stretch).getByTestId('stat-bb')).toHaveTextContent('0');
+    expect(within(stretch).getByTestId('stat-k')).toHaveTextContent('0');
+    expect(
+      within(stretch).getByRole('button', { name: 'Hide all stats for Stretch' }),
+    ).toHaveAttribute('aria-expanded', 'true');
+
+    fireEvent.click(within(stretch).getByRole('button', { name: 'Hide all stats for Stretch' }));
+    expect(within(stretch).queryByTestId('stat-pa')).not.toBeInTheDocument();
+  });
+
+  it('expanding a second card collapses the first (accordion)', () => {
+    renderGrid(LEADERBOARD_ROWS);
+    const stretch = playerCard('Stretch');
+    const zMan = playerCard('Z-Man');
+
+    fireEvent.click(within(stretch).getByRole('button', { name: 'Show all stats for Stretch' }));
+    expect(within(stretch).getByTestId('stat-pa')).toBeInTheDocument();
+
+    fireEvent.click(within(zMan).getByRole('button', { name: 'Show all stats for Z-Man' }));
+    expect(within(zMan).getByTestId('stat-pa')).toBeInTheDocument();
+    expect(within(stretch).queryByTestId('stat-pa')).not.toBeInTheDocument();
+  });
+
+  it('keeps the name link navigable without toggling the card', () => {
+    renderGrid(LEADERBOARD_ROWS);
+    const stretch = playerCard('Stretch');
+    expect(within(stretch).getByRole('link', { name: 'Stretch' })).toHaveAttribute(
+      'href',
+      '/players/stretch',
+    );
+    expect(within(stretch).queryByTestId('stat-pa')).not.toBeInTheDocument();
   });
 });
 
