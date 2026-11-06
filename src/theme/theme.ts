@@ -23,6 +23,26 @@ function zebraOverrides(tint: string) {
         },
       },
     },
+    MuiTableCell: {
+      styleOverrides: {
+        root: ({ theme }: { theme: Theme }) => ({
+          // Pins the `.sticky-col` (first/player-name) cell so it stays visible
+          // during horizontal scroll. The cell is opaque so scrolling columns
+          // don't show through beneath it; its background matches the row
+          // (paper normally, tint on the striped even rows).
+          '&.sticky-col': {
+            position: 'sticky',
+            left: 0,
+            zIndex: 1,
+            backgroundColor: theme.palette.background.paper,
+            borderRight: `1px solid ${theme.palette.divider}`,
+          },
+          'tr:nth-of-type(even) &.sticky-col': {
+            backgroundColor: tint,
+          },
+        }),
+      },
+    },
     MuiDataGrid: {
       styleOverrides: {
         root: ({ theme }: { theme: Theme }) => ({
