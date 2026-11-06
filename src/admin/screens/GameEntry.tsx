@@ -7,6 +7,8 @@ import {
   createFilterOptions,
   MenuItem,
   TextField,
+  ToggleButton,
+  ToggleButtonGroup,
   Typography,
 } from '@mui/material';
 import { useEffect, useState } from 'react';
@@ -15,6 +17,7 @@ import { suggestGameId, suggestPlayerId, slugify } from '../../admin/server/appl
 import {
   GameSchema,
   type Game,
+  type Inning,
   type Location,
   type Player,
   type PlayerLine,
@@ -31,6 +34,7 @@ import {
 } from '../api';
 import LineupGrid from '../components/LineupGrid';
 import LivePreview from '../components/LivePreview';
+import { blockNegativeKeys, nonNegativeSlotProps } from '../numberInput';
 
 const PHASE_OPTIONS = [
   { value: 'regular', label: 'Regular Season' },
@@ -67,6 +71,10 @@ function emptyLine(): PlayerLine {
   };
 }
 
+function emptyInning(): Inning {
+  return { us: 0, them: 0 };
+}
+
 const defaultValues: Game = {
   id: '',
   date: '',
@@ -75,6 +83,8 @@ const defaultValues: Game = {
   isHome: true,
   locationId: '',
   score: { us: 0, them: 0 },
+  opponentHits: undefined,
+  innings: Array.from({ length: 9 }, () => emptyInning()),
   lines: [emptyLine()],
 };
 
@@ -93,6 +103,11 @@ export default function GameEntry() {
   });
 
   const { fields, append, remove } = useFieldArray({ control, name: 'lines' });
+  const {
+    fields: inningFields,
+    append: appendInning,
+    remove: removeInning,
+  } = useFieldArray({ control, name: 'innings' });
 
   useEffect(() => {
     let cancelled = false;
@@ -399,6 +414,24 @@ export default function GameEntry() {
         />
         <Controller
           control={control}
+          name="isHome"
+          render={({ field }) => (
+            <ToggleButtonGroup
+              exclusive
+              size="small"
+              aria-label="Home or away"
+              value={field.value ? 'home' : 'away'}
+              onChange={(_, value) => {
+                if (value !== null) field.onChange(value === 'home');
+              }}
+            >
+              <ToggleButton value="home">Home</ToggleButton>
+              <ToggleButton value="away">Away</ToggleButton>
+            </ToggleButtonGroup>
+          )}
+        />
+        <Controller
+          control={control}
           name="score.us"
           render={({ field, fieldState }) => (
             <TextField
@@ -406,6 +439,8 @@ export default function GameEntry() {
               type="number"
               size="small"
               sx={{ width: { xs: '100%', sm: 100 } }}
+              slotProps={nonNegativeSlotProps}
+              onKeyDown={blockNegativeKeys}
               value={field.value}
               onChange={(event) =>
                 field.onChange(event.target.value === '' ? 0 : Number(event.target.value))
@@ -425,6 +460,8 @@ export default function GameEntry() {
               type="number"
               size="small"
               sx={{ width: { xs: '100%', sm: 100 } }}
+              slotProps={nonNegativeSlotProps}
+              onKeyDown={blockNegativeKeys}
               value={field.value}
               onChange={(event) =>
                 field.onChange(event.target.value === '' ? 0 : Number(event.target.value))
@@ -442,6 +479,92 @@ export default function GameEntry() {
           {warning}
         </Alert>
       ))}
+
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+        <Typography variant="h6" component="h2">
+          Linescore
+        </Typography>
+        {inningFields.map((field, index) => (
+          <Box key={field.id} sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+            <Typography sx={{ width: 72 }}>Inning {index + 1}</Typography>
+            <Controller
+              control={control}
+              name={`innings.${index}.us`}
+              render={({ field: inningField, fieldState }) => (
+                <TextField
+                  type="number"
+                  size="small"
+                  label="Us"
+                  sx={{ width: 72 }}
+                  slotProps={nonNegativeSlotProps}
+                  onKeyDown={blockNegativeKeys}
+                  value={inningField.value}
+                  onChange={(event) =>
+                    inningField.onChange(event.target.value === '' ? 0 : Number(event.target.value))
+                  }
+                  onBlur={inningField.onBlur}
+                  error={!!fieldState.error}
+                  helperText={fieldState.error?.message}
+                />
+              )}
+            />
+            <Controller
+              control={control}
+              name={`innings.${index}.them`}
+              render={({ field: inningField, fieldState }) => (
+                <TextField
+                  type="number"
+                  size="small"
+                  label="Them"
+                  sx={{ width: 72 }}
+                  slotProps={nonNegativeSlotProps}
+                  onKeyDown={blockNegativeKeys}
+                  value={inningField.value}
+                  onChange={(event) =>
+                    inningField.onChange(event.target.value === '' ? 0 : Number(event.target.value))
+                  }
+                  onBlur={inningField.onBlur}
+                  error={!!fieldState.error}
+                  helperText={fieldState.error?.message}
+                />
+              )}
+            />
+          </Box>
+        ))}
+        <Box sx={{ display: 'flex', gap: 1 }}>
+          <Button size="small" onClick={() => appendInning(emptyInning())}>
+            Add inning
+          </Button>
+          <Button
+            size="small"
+            onClick={() => removeInning(inningFields.length - 1)}
+            disabled={inningFields.length <= 1}
+          >
+            Remove inning
+          </Button>
+        </Box>
+        <Controller
+          control={control}
+          name="opponentHits"
+          render={({ field, fieldState }) => (
+            <TextField
+              label="Opponent hits"
+              type="number"
+              size="small"
+              sx={{ width: 140 }}
+              slotProps={nonNegativeSlotProps}
+              onKeyDown={blockNegativeKeys}
+              value={field.value ?? ''}
+              onChange={(event) =>
+                field.onChange(event.target.value === '' ? undefined : Number(event.target.value))
+              }
+              onBlur={field.onBlur}
+              error={!!fieldState.error}
+              helperText={fieldState.error?.message}
+            />
+          )}
+        />
+      </Box>
 
       <LineupGrid
         control={control}
