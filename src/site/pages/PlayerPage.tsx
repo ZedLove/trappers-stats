@@ -79,7 +79,7 @@ function StatsTable({ ariaLabel, rows }: { ariaLabel: string; rows: DerivedStats
           {rows.map((stats, index) => (
             <TableRow key={index}>
               {statValues(stats).map((value, cellIndex) => (
-                <TableCell key={cellIndex} align="right">
+                <TableCell key={cellIndex} align="center">
                   {value}
                 </TableCell>
               ))}
@@ -125,7 +125,7 @@ export default function PlayerPage() {
         <Table aria-label="Season by season" size="small">
           <TableHead>
             <TableRow>
-              <TableCell>Season</TableCell>
+              <TableCell align="center">Season</TableCell>
               {STAT_HEADERS.map((header) => (
                 <TableCell key={header} align="center">
                   {header}
@@ -136,9 +136,9 @@ export default function PlayerPage() {
           <TableBody>
             {seasonRows.map(({ season, stats }) => (
               <TableRow key={season}>
-                <TableCell>{season}</TableCell>
+                <TableCell align="center">{season}</TableCell>
                 {statValues(stats).map((value, cellIndex) => (
-                  <TableCell key={cellIndex} align="right">
+                  <TableCell key={cellIndex} align="center">
                     {value}
                   </TableCell>
                 ))}
@@ -158,9 +158,9 @@ export default function PlayerPage() {
           <Table aria-label="Game log" size="small">
             <TableHead>
               <TableRow>
-                <TableCell>Date</TableCell>
-                <TableCell>Opponent</TableCell>
-                <TableCell>Phase</TableCell>
+                <TableCell align="center">Date</TableCell>
+                <TableCell align="center">Opponent</TableCell>
+                <TableCell align="center">Phase</TableCell>
                 <TableCell align="center">AB</TableCell>
                 <TableCell align="center">H</TableCell>
                 <TableCell align="center">1B</TableCell>
@@ -176,25 +176,25 @@ export default function PlayerPage() {
             <TableBody>
               {log.map(({ game, line }) => (
                 <TableRow key={game.id}>
-                  <TableCell>{game.date}</TableCell>
+                  <TableCell align="center">{game.date}</TableCell>
                   <TableCell>
                     <MuiLink component={RouterLink} to={`/games/${game.id}`} color="secondary">
                       {getTeam(game.opponentId)?.name ?? game.opponentId}
                     </MuiLink>
                   </TableCell>
-                  <TableCell>
+                  <TableCell align="center">
                     <Chip label={PHASE_LABELS[game.phase]} size="small" color={phaseColor(game.phase)} />
                   </TableCell>
-                  <TableCell align="right">{line.ab}</TableCell>
-                  <TableCell align="right">{hitCount(line)}</TableCell>
-                  <TableCell align="right">{line['1b']}</TableCell>
-                  <TableCell align="right">{line['2b']}</TableCell>
-                  <TableCell align="right">{line['3b']}</TableCell>
-                  <TableCell align="right">{line.hr}</TableCell>
-                  <TableCell align="right">{line.bb}</TableCell>
-                  <TableCell align="right">{line.sf}</TableCell>
-                  <TableCell align="right">{line.k}</TableCell>
-                  <TableCell align="right">{line.r}</TableCell>
+                  <TableCell align="center">{line.ab}</TableCell>
+                  <TableCell align="center">{hitCount(line)}</TableCell>
+                  <TableCell align="center">{line['1b']}</TableCell>
+                  <TableCell align="center">{line['2b']}</TableCell>
+                  <TableCell align="center">{line['3b']}</TableCell>
+                  <TableCell align="center">{line.hr}</TableCell>
+                  <TableCell align="center">{line.bb}</TableCell>
+                  <TableCell align="center">{line.sf}</TableCell>
+                  <TableCell align="center">{line.k}</TableCell>
+                  <TableCell align="center">{line.r}</TableCell>
                 </TableRow>
               ))}
             </TableBody>

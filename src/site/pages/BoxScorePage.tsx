@@ -88,7 +88,7 @@ export default function BoxScorePage() {
           <Table aria-label="Box score" size="small">
             <TableHead>
               <TableRow>
-                <TableCell>Player</TableCell>
+                <TableCell align="center">Player</TableCell>
                 <TableCell align="center">AB</TableCell>
                 <TableCell align="center">H</TableCell>
                 <TableCell align="center">1B</TableCell>
@@ -111,16 +111,16 @@ export default function BoxScorePage() {
                         {player?.name ?? line.playerId}
                       </MuiLink>
                     </TableCell>
-                    <TableCell align="right">{line.ab}</TableCell>
-                    <TableCell align="right">{hitCount(line)}</TableCell>
-                    <TableCell align="right">{line['1b']}</TableCell>
-                    <TableCell align="right">{line['2b']}</TableCell>
-                    <TableCell align="right">{line['3b']}</TableCell>
-                    <TableCell align="right">{line.hr}</TableCell>
-                    <TableCell align="right">{line.bb}</TableCell>
-                    <TableCell align="right">{line.sf}</TableCell>
-                    <TableCell align="right">{line.k}</TableCell>
-                    <TableCell align="right">{line.r}</TableCell>
+                    <TableCell align="center">{line.ab}</TableCell>
+                    <TableCell align="center">{hitCount(line)}</TableCell>
+                    <TableCell align="center">{line['1b']}</TableCell>
+                    <TableCell align="center">{line['2b']}</TableCell>
+                    <TableCell align="center">{line['3b']}</TableCell>
+                    <TableCell align="center">{line.hr}</TableCell>
+                    <TableCell align="center">{line.bb}</TableCell>
+                    <TableCell align="center">{line.sf}</TableCell>
+                    <TableCell align="center">{line.k}</TableCell>
+                    <TableCell align="center">{line.r}</TableCell>
                   </TableRow>
                 );
               })}

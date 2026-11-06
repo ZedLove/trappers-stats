@@ -102,12 +102,12 @@ export default function GamesPage() {
           <Table aria-label="Games" size="small">
             <TableHead>
               <TableRow>
-                <TableCell>Date</TableCell>
-                <TableCell>Opponent</TableCell>
-                <TableCell>Phase</TableCell>
-                <TableCell>Result</TableCell>
+                <TableCell align="center">Date</TableCell>
+                <TableCell align="center">Opponent</TableCell>
+                <TableCell align="center">Phase</TableCell>
+                <TableCell align="center">Result</TableCell>
                 <TableCell align="center">Score</TableCell>
-                <TableCell>Location</TableCell>
+                <TableCell align="center">Location</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -121,7 +121,7 @@ export default function GamesPage() {
                     onClick={() => navigate(`/games/${game.id}`)}
                     sx={{ cursor: 'pointer', '&:last-child td, &:last-child th': { border: 0 } }}
                   >
-                    <TableCell>{game.date}</TableCell>
+                    <TableCell align="center">{game.date}</TableCell>
                     <TableCell>
                       <MuiLink
                         component={RouterLink}
@@ -132,16 +132,16 @@ export default function GamesPage() {
                         {opponentName}
                       </MuiLink>
                     </TableCell>
-                    <TableCell>
+                    <TableCell align="center">
                       <Chip label={PHASE_LABELS[game.phase]} size="small" color={phaseColor(game.phase)} />
                     </TableCell>
-                    <TableCell>
+                    <TableCell align="center">
                       <Chip label={result} size="small" color={resultColor(result)} />
                     </TableCell>
-                    <TableCell align="right">
+                    <TableCell align="center">
                       {game.score.us}-{game.score.them}
                     </TableCell>
-                    <TableCell>{getLocation(game.locationId)?.name ?? '—'}</TableCell>
+                    <TableCell align="center">{getLocation(game.locationId)?.name ?? '—'}</TableCell>
                   </TableRow>
                 );
               })}

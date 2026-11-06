@@ -28,21 +28,21 @@ export default function PlayoffResults({ playoffs }: PlayoffResultsProps) {
         <Table aria-label="Playoff results" size="small">
           <TableHead>
             <TableRow>
-              <TableCell>Round</TableCell>
-              <TableCell>Matchup</TableCell>
-              <TableCell>Winner</TableCell>
-              <TableCell>Note</TableCell>
+              <TableCell align="center">Round</TableCell>
+              <TableCell align="center">Matchup</TableCell>
+              <TableCell align="center">Winner</TableCell>
+              <TableCell align="center">Note</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {playoffs.map((matchup, index) => (
               <TableRow key={`${matchup.round}-${index}`}>
-                <TableCell>{matchup.round}</TableCell>
+                <TableCell align="center">{matchup.round}</TableCell>
                 <TableCell>
                   {teamName(matchup.teamA)} vs {teamName(matchup.teamB)}
                 </TableCell>
                 <TableCell>{matchup.winner ? teamName(matchup.winner) : '—'}</TableCell>
-                <TableCell>{matchup.note ?? '—'}</TableCell>
+                <TableCell align="center">{matchup.note ?? '—'}</TableCell>
               </TableRow>
             ))}
           </TableBody>

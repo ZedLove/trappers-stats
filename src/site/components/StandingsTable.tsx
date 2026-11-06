@@ -28,7 +28,7 @@ export default function StandingsTable({ standings }: StandingsTableProps) {
             <TableHead>
               <TableRow>
                 <TableCell align="center">#</TableCell>
-                <TableCell>Team</TableCell>
+                <TableCell align="center">Team</TableCell>
                 <TableCell align="center">W</TableCell>
                 <TableCell align="center">L</TableCell>
                 <TableCell align="center">T</TableCell>
