@@ -29,11 +29,18 @@ export default function App() {
       <AppBar position="sticky">
         <Toolbar>
           <Box
-            component="img"
-            src={logo}
-            alt="Trappers logo"
-            sx={{ width: 36, height: 36, objectFit: 'contain', borderRadius: '8px', mr: 1.5 }}
-          />
+            component={Link}
+            to="/"
+            aria-label="Trappers home"
+            sx={{ display: 'inline-flex', mr: 1.5 }}
+          >
+            <Box
+              component="img"
+              src={logo}
+              alt="Trappers logo"
+              sx={{ width: 36, height: 36, objectFit: 'contain', borderRadius: '8px' }}
+            />
+          </Box>
           <Typography
             variant="h6"
             component={Link}
