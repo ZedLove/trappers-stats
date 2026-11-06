@@ -13,7 +13,8 @@ import {
 import { useParams } from 'react-router-dom';
 import { Link as RouterLink } from 'react-router-dom';
 import { CircleOff } from 'lucide-react';
-import { getLocation, getPlayer, getTeam, seasons } from '../../shared/data';
+import { getLocation, getPlayer, getTeam, getUsTeamName, seasons } from '../../shared/data';
+import { sumLines } from '../../shared/stats';
 import { gameWarnings } from '../../shared/validate';
 import type { Game } from '../../shared/schema';
 import { PHASE_LABELS, phaseColor } from '../phase';
@@ -37,6 +38,36 @@ function hitCount(line: { '1b': number; '2b': number; '3b': number; hr: number }
   return line['1b'] + line['2b'] + line['3b'] + line.hr;
 }
 
+interface LinescoreRow {
+  name: string;
+  runs: number[];
+  r: number;
+  h: number | undefined;
+}
+
+function buildLinescore(
+  game: Game,
+  awayName: string,
+  homeName: string,
+): LinescoreRow[] | null {
+  if (!game.innings) return null;
+  const trappersHits = sumLines(game.lines).h;
+  return [
+    {
+      name: awayName,
+      runs: game.innings.map((inning) => (game.isHome ? inning.them : inning.us)),
+      r: game.isHome ? game.score.them : game.score.us,
+      h: game.isHome ? game.opponentHits : trappersHits,
+    },
+    {
+      name: homeName,
+      runs: game.innings.map((inning) => (game.isHome ? inning.us : inning.them)),
+      r: game.isHome ? game.score.us : game.score.them,
+      h: game.isHome ? trappersHits : game.opponentHits,
+    },
+  ];
+}
+
 export default function BoxScorePage() {
   const { gameId } = useParams<{ gameId: string }>();
   useDocumentTitle('Box Score');
@@ -51,6 +82,10 @@ export default function BoxScorePage() {
 
   const { game } = found;
   const opponentName = getTeam(game.opponentId)?.name ?? game.opponentId;
+  const usName = getUsTeamName();
+  const awayName = game.isHome ? opponentName : usName;
+  const homeName = game.isHome ? usName : opponentName;
+  const linescore = buildLinescore(game, awayName, homeName);
   const result = gameResult(game);
   const warnings = gameWarnings(game);
 
@@ -58,6 +93,9 @@ export default function BoxScorePage() {
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
       <Typography variant="h4" component="h1">
         Box Score
+      </Typography>
+      <Typography variant="h5" component="h2">
+        {awayName} @ {homeName}
       </Typography>
       <Typography variant="subtitle1" color="text.secondary">
         {game.date}
@@ -76,6 +114,39 @@ export default function BoxScorePage() {
         </Typography>
         <Chip label={result} size="small" color={resultColor(result)} />
       </Box>
+
+      {linescore && (
+        <TableContainer>
+          <Table aria-label="Linescore" size="small">
+            <TableHead>
+              <TableRow>
+                <TableCell>Team</TableCell>
+                {linescore[0].runs.map((_, index) => (
+                  <TableCell key={index} align="center">
+                    {index + 1}
+                  </TableCell>
+                ))}
+                <TableCell align="center">R</TableCell>
+                <TableCell align="center">H</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {linescore.map((row) => (
+                <TableRow key={row.name}>
+                  <TableCell>{row.name}</TableCell>
+                  {row.runs.map((run, index) => (
+                    <TableCell key={index} align="center">
+                      {run}
+                    </TableCell>
+                  ))}
+                  <TableCell align="center">{row.r}</TableCell>
+                  <TableCell align="center">{row.h ?? '—'}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      )}
 
       {game.lines.length === 0 ? (
         <EmptyState
