@@ -7,6 +7,7 @@ import {
   type Standing,
 } from '../../shared/schema';
 import { getState, saveResults, type AdminState } from '../api';
+import { blockNegativeKeys, nonNegativeSlotProps } from '../numberInput';
 
 function emptyStanding(): Standing {
   return { teamId: '', wins: undefined, losses: undefined, ties: undefined };
@@ -190,7 +191,8 @@ export default function SeasonResults() {
                 sx={{ width: { xs: '100%', sm: 88 } }}
                 value={row.wins ?? ''}
                 onChange={(event) => updateStanding(index, { wins: parseInteger(event.target.value) })}
-                slotProps={{ htmlInput: { min: 0 } }}
+                slotProps={nonNegativeSlotProps}
+                onKeyDown={blockNegativeKeys}
               />
               <TextField
                 label="Losses"
@@ -201,7 +203,8 @@ export default function SeasonResults() {
                 onChange={(event) =>
                   updateStanding(index, { losses: parseInteger(event.target.value) })
                 }
-                slotProps={{ htmlInput: { min: 0 } }}
+                slotProps={nonNegativeSlotProps}
+                onKeyDown={blockNegativeKeys}
               />
               <TextField
                 label="Ties"
@@ -210,7 +213,8 @@ export default function SeasonResults() {
                 sx={{ width: { xs: '100%', sm: 88 } }}
                 value={row.ties ?? ''}
                 onChange={(event) => updateStanding(index, { ties: parseInteger(event.target.value) })}
-                slotProps={{ htmlInput: { min: 0 } }}
+                slotProps={nonNegativeSlotProps}
+                onKeyDown={blockNegativeKeys}
               />
               <Button
                 size="small"

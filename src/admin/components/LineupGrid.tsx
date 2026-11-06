@@ -8,6 +8,7 @@ import {
 } from '@mui/material';
 import { Controller, type Control } from 'react-hook-form';
 import type { Game, Player, PlayerLine } from '../../shared/schema';
+import { blockNegativeKeys, nonNegativeSlotProps } from '../numberInput';
 
 const STAT_FIELDS: Array<{ key: keyof PlayerLine; label: string }> = [
   { key: 'ab', label: 'AB' },
@@ -127,6 +128,8 @@ export default function LineupGrid({
                     size="small"
                     label={label}
                     sx={{ width: 64 }}
+                    slotProps={nonNegativeSlotProps}
+                    onKeyDown={blockNegativeKeys}
                     value={statField.value}
                     onChange={(event) =>
                       statField.onChange(

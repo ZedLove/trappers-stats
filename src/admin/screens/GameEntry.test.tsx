@@ -3,6 +3,7 @@ import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   GameSchema,
+  type Game,
   type LocationsFile,
   type PlayersFile,
   type SeasonFile,
@@ -149,6 +150,74 @@ describe('GameEntry', () => {
     const init = calls[0][1] as RequestInit;
     const body = JSON.parse(String(init.body)) as { season: number; game: unknown };
     expect(body.season).toBe(2026);
-    expect(GameSchema.safeParse(body.game).success).toBe(true);
+    const parsed = GameSchema.safeParse(body.game);
+    expect(parsed.success).toBe(true);
+    if (parsed.success) {
+      expect(parsed.data.isHome).toBe(true);
+      expect(parsed.data.innings).toHaveLength(9);
+      expect(parsed.data.opponentHits).toBeUndefined();
+    }
+  });
+
+  it('defaults to home and records away when toggled', async () => {
+    await renderLoaded();
+    await fillMetadata();
+    await selectPlayer('Z-Man');
+    setNumber('AB', 3);
+    setNumber('1B', 1);
+    setNumber('R', 5);
+
+    const home = screen.getByRole('button', { name: 'Home' });
+    const away = screen.getByRole('button', { name: 'Away' });
+    expect(home).toHaveAttribute('aria-pressed', 'true');
+    expect(away).toHaveAttribute('aria-pressed', 'false');
+
+    fireEvent.click(away);
+
+    submit();
+    expect(await screen.findByText(/Game saved/)).toBeInTheDocument();
+
+    const body = JSON.parse(String((saveGameCalls()[0][1] as RequestInit).body)) as {
+      season: number;
+      game: Game;
+    };
+    expect(body.game.isHome).toBe(false);
+  });
+
+  it('renders a nine-inning linescore and can add or remove innings', async () => {
+    await renderLoaded();
+
+    const usInputs = () => screen.getAllByLabelText('Us');
+    expect(usInputs()).toHaveLength(9);
+    expect(screen.getByText('Inning 9')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Add inning' }));
+    expect(usInputs()).toHaveLength(10);
+    expect(screen.getByText('Inning 10')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Remove inning' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Remove inning' }));
+    expect(usInputs()).toHaveLength(8);
+
+    for (let i = 0; i < 7; i += 1) {
+      fireEvent.click(screen.getByRole('button', { name: 'Remove inning' }));
+    }
+    expect(usInputs()).toHaveLength(1);
+    expect(screen.getByRole('button', { name: 'Remove inning' })).toBeDisabled();
+  });
+
+  it('marks numeric inputs with a zero minimum and blocks negative keystrokes', async () => {
+    await renderLoaded();
+
+    const score = screen.getByLabelText('Our score') as HTMLInputElement;
+    expect(score.min).toBe('0');
+    expect(fireEvent.keyDown(score, { key: '-' })).toBe(false);
+
+    const ab = screen.getAllByLabelText('AB')[0] as HTMLInputElement;
+    expect(ab.min).toBe('0');
+
+    const inningUs = screen.getAllByLabelText('Us')[0] as HTMLInputElement;
+    expect(inningUs.min).toBe('0');
+    expect(fireEvent.keyDown(inningUs, { key: 'e' })).toBe(false);
   });
 });
