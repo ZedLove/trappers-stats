@@ -1,6 +1,7 @@
 import {
   Box,
   Chip,
+  Paper,
   Table,
   TableBody,
   TableCell,
@@ -116,47 +117,56 @@ export default function BoxScorePage() {
       </Box>
 
       {linescore && (
-        <TableContainer>
-          <Table aria-label="Linescore" size="small">
-            <TableHead>
-              <TableRow>
-                <TableCell>Team</TableCell>
-                {linescore[0].runs.map((_, index) => (
-                  <TableCell key={index} align="center">
-                    {index + 1}
-                  </TableCell>
-                ))}
-                <TableCell align="center">R</TableCell>
-                <TableCell align="center">H</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {linescore.map((row) => (
-                <TableRow key={row.name}>
-                  <TableCell>{row.name}</TableCell>
-                  {row.runs.map((run, index) => (
+        <Paper variant="outlined" sx={{ p: 2 }}>
+          <Typography variant="h6" component="h2" sx={{ mb: 1 }}>
+            Linescore
+          </Typography>
+          <TableContainer>
+            <Table aria-label="Linescore" size="small">
+              <TableHead>
+                <TableRow>
+                  <TableCell>Team</TableCell>
+                  {linescore[0].runs.map((_, index) => (
                     <TableCell key={index} align="center">
-                      {run}
+                      {index + 1}
                     </TableCell>
                   ))}
-                  <TableCell align="center">{row.r}</TableCell>
-                  <TableCell align="center">{row.h ?? '—'}</TableCell>
+                  <TableCell align="center">R</TableCell>
+                  <TableCell align="center">H</TableCell>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
+              </TableHead>
+              <TableBody>
+                {linescore.map((row) => (
+                  <TableRow key={row.name}>
+                    <TableCell>{row.name}</TableCell>
+                    {row.runs.map((run, index) => (
+                      <TableCell key={index} align="center">
+                        {run}
+                      </TableCell>
+                    ))}
+                    <TableCell align="center">{row.r}</TableCell>
+                    <TableCell align="center">{row.h ?? '—'}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Paper>
       )}
 
-      {game.lines.length === 0 ? (
-        <EmptyState
-          icon={CircleOff}
-          title="No box score lines"
-          message="This game doesn't have any player lines recorded."
-        />
-      ) : (
-        <TableContainer>
-          <Table aria-label="Box score" size="small">
+      <Paper variant="outlined" sx={{ p: 2 }}>
+        <Typography variant="h6" component="h2" sx={{ mb: 1 }}>
+          Batting
+        </Typography>
+        {game.lines.length === 0 ? (
+          <EmptyState
+            icon={CircleOff}
+            title="No box score lines"
+            message="This game doesn't have any player lines recorded."
+          />
+        ) : (
+          <TableContainer>
+            <Table aria-label="Box score" size="small">
             <TableHead>
               <TableRow>
                 <TableCell align="center">Player</TableCell>
@@ -199,6 +209,7 @@ export default function BoxScorePage() {
           </Table>
         </TableContainer>
       )}
+      </Paper>
 
       {warnings.length > 0 && (
         <Typography color="text.secondary">Line data may be incomplete</Typography>
