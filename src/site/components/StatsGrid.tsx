@@ -100,7 +100,7 @@ function buildColumns(): GridColDef[] {
       description,
       type: 'number',
       width: rate ? 76 : 56,
-      align: 'right',
+      align: 'center',
       headerAlign: 'center',
       headerClassName: GROUP_SEP_FIELDS.has(field) ? 'colgroup-sep' : undefined,
       cellClassName: cellClass(field),
@@ -114,6 +114,8 @@ function buildColumns(): GridColDef[] {
       headerName: 'Player',
       flex: 1,
       minWidth: 140,
+      align: 'left',
+      headerAlign: 'center',
       renderCell: (params) => (
         <MuiLink component={RouterLink} to={`/players/${params.row.playerId}`} color="secondary">
           {params.value}
