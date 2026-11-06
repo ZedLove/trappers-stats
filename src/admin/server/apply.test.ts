@@ -36,6 +36,7 @@ function makeGame(overrides: Partial<Game> = {}): Game {
     date: '2025-06-01',
     phase: 'regular',
     opponentId: 't-bears',
+    isHome: true,
     score: { us: 0, them: 0 },
     lines: [],
     ...overrides,

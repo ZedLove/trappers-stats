@@ -69,17 +69,29 @@ const calendarDateSchema = z.string().refine((date) => {
   return !Number.isNaN(parsed.getTime()) && parsed.toISOString().slice(0, 10) === date;
 }, 'Date must be a valid calendar date in YYYY-MM-DD format');
 
+export type Inning = { us: number; them: number };
+
 export const GameSchema = z
   .object({
     id: z.string(),
     date: calendarDateSchema,
     phase: phaseSchema,
     opponentId: z.string(),
+    isHome: z.boolean(),
     locationId: z.string().optional(),
     score: z.object({
       us: nonNegativeIntegerSchema,
       them: nonNegativeIntegerSchema,
     }),
+    opponentHits: nonNegativeIntegerSchema.optional(),
+    innings: z
+      .array(
+        z.object({
+          us: nonNegativeIntegerSchema,
+          them: nonNegativeIntegerSchema,
+        }),
+      )
+      .optional(),
     lines: z.array(PlayerLineSchema),
   })
   .superRefine((game, context) => {

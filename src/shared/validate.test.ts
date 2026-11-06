@@ -32,6 +32,7 @@ const baseGame = {
   date: '2026-05-12',
   phase: 'regular' as const,
   opponentId: 'eagles',
+  isHome: true,
   locationId: 'doverfield-park',
   score: { us: 7, them: 9 },
   lines: [
@@ -219,5 +220,29 @@ describe('gameWarnings', () => {
     const warnings = gameWarnings(short);
     expect(warnings.length).toBeGreaterThan(0);
     expect(warnings.some((w: string) => w.toLowerCase().includes('line'))).toBe(true);
+  });
+
+  it('warns when innings runs do not match the scores', () => {
+    const mismatched = {
+      ...baseGame,
+      innings: [
+        { us: 1, them: 0 },
+        { us: 0, them: 1 },
+      ],
+    };
+    const warnings = gameWarnings(mismatched);
+    expect(warnings).toContain('Innings runs (1) do not match team score (7)');
+    expect(warnings).toContain('Innings runs (1) do not match opponent score (9)');
+  });
+
+  it('does not warn when innings runs match the scores', () => {
+    const matched = {
+      ...baseGame,
+      innings: [
+        { us: 7, them: 0 },
+        { us: 0, them: 9 },
+      ],
+    };
+    expect(gameWarnings(matched)).toEqual([]);
   });
 });

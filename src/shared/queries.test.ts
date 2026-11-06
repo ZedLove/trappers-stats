@@ -37,6 +37,7 @@ const season2024: SeasonFile = {
       date: '2024-06-05',
       phase: 'regular',
       opponentId: 'opp-a',
+      isHome: false,
       score: { us: 5, them: 3 },
       lines: [
         line({ playerId: 'p-anna', ab: 4, '1b': 2, '2b': 1 }),
@@ -49,6 +50,7 @@ const season2024: SeasonFile = {
       date: '2024-05-20',
       phase: 'regular',
       opponentId: 'opp-b',
+      isHome: true,
       score: { us: 2, them: 2 },
       lines: [
         line({ playerId: 'p-anna', ab: 2, '1b': 1 }),
@@ -61,6 +63,7 @@ const season2024: SeasonFile = {
       date: '2024-06-12',
       phase: 'playoff',
       opponentId: 'opp-a',
+      isHome: false,
       score: { us: 1, them: 4 },
       lines: [
         line({ playerId: 'p-anna', ab: 4, hr: 1 }),
@@ -79,6 +82,7 @@ const season2025: SeasonFile = {
       date: '2025-05-01',
       phase: 'regular',
       opponentId: 'opp-c',
+      isHome: true,
       score: { us: 7, them: 0 },
       lines: [
         line({ playerId: 'p-anna', ab: 3, '1b': 2, '2b': 1 }),
@@ -91,6 +95,7 @@ const season2025: SeasonFile = {
       date: '2025-04-15',
       phase: 'round_robin',
       opponentId: 'opp-d',
+      isHome: false,
       score: { us: 3, them: 6 },
       lines: [
         line({ playerId: 'p-anna', ab: 1, k: 1 }),
