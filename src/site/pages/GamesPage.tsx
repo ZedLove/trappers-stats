@@ -103,7 +103,7 @@ export default function GamesPage() {
       )}
       <Paper variant="outlined" sx={{ p: 2 }}>
         <Typography variant="h6" component="h2">
-          Games
+          Game Log
         </Typography>
         {games.length === 0 ? (
           <EmptyState
