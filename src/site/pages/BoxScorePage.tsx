@@ -169,7 +169,7 @@ export default function BoxScorePage() {
             <Table aria-label="Box score" size="small">
             <TableHead>
               <TableRow>
-                <TableCell align="center">Player</TableCell>
+                <TableCell className="sticky-col" align="center">Player</TableCell>
                 <TableCell align="center">AB</TableCell>
                 <TableCell align="center">H</TableCell>
                 <TableCell align="center">1B</TableCell>
@@ -187,7 +187,7 @@ export default function BoxScorePage() {
                 const player = getPlayer(line.playerId);
                 return (
                   <TableRow key={line.playerId}>
-                    <TableCell>
+                    <TableCell className="sticky-col">
                       <MuiLink component={RouterLink} to={`/players/${line.playerId}`} color="secondary">
                         {player?.name ?? line.playerId}
                       </MuiLink>
