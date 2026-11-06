@@ -117,6 +117,11 @@ export function getTeam(id: string): Team | undefined {
   return teams.teams.find((team) => team.id === id);
 }
 
+/** Display name of the "us" team, falling back to "Trappers" if unset. */
+export function getUsTeamName(): string {
+  return teams.teams.find((team) => team.us === true)?.name ?? 'Trappers';
+}
+
 export function getLocation(id: string | undefined): Location | undefined {
   return locations.locations.find((location) => location.id === id);
 }
