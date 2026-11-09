@@ -2,20 +2,41 @@
 import { cleanup, render, screen, within } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import type { SeasonFile } from '../../shared/schema';
+import type { Player } from '../../shared/schema';
 import GamesPage from './GamesPage';
 
-// Extend the real registries with two fixture seasons: 2025 has games but no
-// results (standings/playoffs must be hidden), 2024 has no games at all
-// (empty-state message). Seed assertions still run against the real 2026 data.
-vi.mock('../../shared/data', async (importActual) => {
-  const actual = await importActual<typeof import('../../shared/data')>();
-  const fixtureSeasons: SeasonFile[] = [
-    {
+// Self-contained fixture dataset. 2026 is a full season with standings and
+// playoffs; 2025 has a game but no results (standings/playoffs must hide);
+// 2024 has no games at all (empty state).
+vi.mock('../../shared/data', async () => {
+  const {
+    makeGame,
+    makeLocation,
+    makePlayoffMatchup,
+    makeResults,
+    makeSeason,
+    makeStanding,
+    makeTeam,
+  } = await import('../../fixtures/fixtures');
+
+  const teams = [
+    makeTeam({ id: 'trappers', name: 'Trappers', us: true }),
+    makeTeam({ id: 'hornets', name: 'Hornets' }),
+    makeTeam({ id: 'bandits', name: 'Bandits' }),
+    makeTeam({ id: 'wildcats', name: 'Wildcats' }),
+  ];
+  const locations = [
+    makeLocation({ id: 'doverfield-park', name: 'Doverfield Park' }),
+    makeLocation({ id: 'riverbend-field', name: 'Riverbend Field' }),
+  ];
+  const players: Player[] = [];
+  const seasons = [
+    makeSeason({ season: 2024, division: null, games: [] }),
+    makeSeason({
       season: 2025,
       division: 'A',
       games: [
-        {
+        makeGame({
           id: '2025-05-06-hornets',
           date: '2025-05-06',
           phase: 'regular',
@@ -23,15 +44,81 @@ vi.mock('../../shared/data', async (importActual) => {
           isHome: true,
           score: { us: 3, them: 3 },
           lines: [],
-        },
+        }),
       ],
-    },
-    { season: 2024, division: null, games: [] },
+    }),
+    makeSeason({
+      season: 2026,
+      division: 'B',
+      games: [
+        makeGame({
+          id: '2026-05-05-hornets',
+          date: '2026-05-05',
+          phase: 'regular',
+          opponentId: 'hornets',
+          isHome: true,
+          locationId: 'doverfield-park',
+          score: { us: 7, them: 5 },
+          lines: [],
+        }),
+        makeGame({
+          id: '2026-06-02-bandits',
+          date: '2026-06-02',
+          phase: 'round_robin',
+          opponentId: 'bandits',
+          isHome: false,
+          locationId: 'riverbend-field',
+          score: { us: 5, them: 9 },
+          lines: [],
+        }),
+        makeGame({
+          id: '2026-06-23-wildcats',
+          date: '2026-06-23',
+          phase: 'playoff',
+          opponentId: 'wildcats',
+          isHome: true,
+          locationId: 'doverfield-park',
+          score: { us: 6, them: 4 },
+          lines: [],
+        }),
+      ],
+      results: makeResults({
+        standings: [
+          makeStanding({ teamId: 'bandits', wins: 10, losses: 2, ties: 0 }),
+          makeStanding({ teamId: 'trappers', wins: 9, losses: 3, ties: 0 }),
+          makeStanding({ teamId: 'hornets', wins: 5, losses: 7, ties: 0 }),
+          makeStanding({ teamId: 'wildcats', wins: 4, losses: 8, ties: 0 }),
+        ],
+        playoffs: [
+          makePlayoffMatchup({
+            round: 'Semifinal',
+            division: 'B',
+            teamA: 'trappers',
+            teamB: 'wildcats',
+            winner: 'trappers',
+            note: 'Won 6-4',
+          }),
+          makePlayoffMatchup({
+            round: 'Final',
+            division: 'B',
+            teamA: 'bandits',
+            teamB: 'trappers',
+            winner: 'bandits',
+          }),
+        ],
+      }),
+    }),
   ];
-  const seasons = [...actual.seasons, ...fixtureSeasons].sort((a, b) => a.season - b.season);
+
   return {
-    ...actual,
+    players,
+    teams,
+    locations,
     seasons,
+    getPlayer: (id: string) => players.find((player) => player.id === id),
+    getTeam: (id: string) => teams.find((team) => team.id === id),
+    getLocation: (id: string | undefined) => locations.find((location) => location.id === id),
+    getUsTeamName: () => teams.find((team) => team.us === true)?.name ?? 'Trappers',
     getSeason: (year: number) => seasons.find((season) => season.season === year),
     latestSeason: () => seasons.at(-1),
   };

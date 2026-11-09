@@ -2,16 +2,78 @@
 import { cleanup, render, screen, within } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import type { SeasonFile } from '../../shared/schema';
+import BoxScorePage from './BoxScorePage';
 
-vi.mock('../../shared/data', async (importActual) => {
-  const actual = await importActual<typeof import('../../shared/data')>();
-  const fixtureSeasons: SeasonFile[] = [
-    {
-      season: 2025,
-      division: 'A',
+// Self-contained fixture dataset covering the box-score scenarios: a full home
+// game with linescore, home/away matchup naming, missing opponent hits, a game
+// with no innings, a runs-mismatch warning, and an unknown id.
+vi.mock('../../shared/data', async () => {
+  const {
+    makeGame,
+    makeLine,
+    makeLocation,
+    makePlayer,
+    makeSeason,
+    makeTeam,
+  } = await import('../../fixtures/fixtures');
+
+  const players = [
+    makePlayer({ id: 'z-man', name: 'Z-Man' }),
+    makePlayer({ id: 'stretch', name: 'Stretch' }),
+    makePlayer({ id: 'duke', name: 'Duke' }),
+    makePlayer({ id: 'mike-s', name: 'Mike S.' }),
+    makePlayer({ id: 'big-cat', name: 'Big Cat' }),
+    makePlayer({ id: 'jo-jo', name: 'Jo Jo' }),
+  ];
+  const teams = [
+    makeTeam({ id: 'trappers', name: 'Trappers', us: true }),
+    makeTeam({ id: 'hornets', name: 'Hornets' }),
+    makeTeam({ id: 'bandits', name: 'Bandits' }),
+    makeTeam({ id: 'wildcats', name: 'Wildcats' }),
+  ];
+  const locations = [
+    makeLocation({ id: 'doverfield-park', name: 'Doverfield Park' }),
+    makeLocation({ id: 'riverbend-field', name: 'Riverbend Field' }),
+    makeLocation({ id: 'cedar-grove', name: 'Cedar Grove Park' }),
+  ];
+
+  const seasons = [
+    makeSeason({
+      season: 2026,
+      division: 'B',
       games: [
-        {
+        // Home regular-season game with a full linescore and a full batting order.
+        makeGame({
+          id: '2026-05-05-hornets',
+          date: '2026-05-05',
+          phase: 'regular',
+          opponentId: 'hornets',
+          isHome: true,
+          locationId: 'doverfield-park',
+          score: { us: 7, them: 5 },
+          opponentHits: 9,
+          innings: [
+            { us: 1, them: 0 },
+            { us: 0, them: 2 },
+            { us: 2, them: 0 },
+            { us: 0, them: 1 },
+            { us: 1, them: 0 },
+            { us: 0, them: 0 },
+            { us: 3, them: 2 },
+            { us: 0, them: 0 },
+            { us: 0, them: 0 },
+          ],
+          lines: [
+            makeLine({ playerId: 'z-man', ab: 4, '1b': 2, r: 2 }),
+            makeLine({ playerId: 'stretch', ab: 3, '1b': 1, '2b': 1, bb: 1, k: 1, r: 1 }),
+            makeLine({ playerId: 'duke', ab: 4, '2b': 1, hr: 1, k: 1, r: 2 }),
+            makeLine({ playerId: 'mike-s', ab: 3, '1b': 1, bb: 1, r: 1 }),
+            makeLine({ playerId: 'big-cat', ab: 3, sf: 1, k: 1 }),
+            makeLine({ playerId: 'jo-jo', ab: 2, '1b': 1, bb: 1, k: 1, r: 1 }),
+          ],
+        }),
+        // Player-line runs don't match the team score -> incomplete-data caption.
+        makeGame({
           id: 'mismatch-game',
           date: '2025-05-06',
           phase: 'regular',
@@ -19,22 +81,10 @@ vi.mock('../../shared/data', async (importActual) => {
           isHome: true,
           locationId: 'doverfield-park',
           score: { us: 5, them: 3 },
-          lines: [
-            {
-              playerId: 'z-man',
-              ab: 1,
-              '1b': 1,
-              '2b': 0,
-              '3b': 0,
-              hr: 0,
-              bb: 0,
-              sf: 0,
-              k: 0,
-              r: 10,
-            },
-          ],
-        },
-        {
+          lines: [makeLine({ playerId: 'z-man', ab: 1, '1b': 1, r: 10 })],
+        }),
+        // Away game with no innings: no linescore and no warnings.
+        makeGame({
           id: 'clean-game',
           date: '2025-05-07',
           phase: 'regular',
@@ -42,25 +92,15 @@ vi.mock('../../shared/data', async (importActual) => {
           isHome: false,
           score: { us: 1, them: 2 },
           lines: [
-            {
-              playerId: 'z-man',
-              ab: 1,
-              '1b': 1,
-              '2b': 0,
-              '3b': 0,
-              hr: 0,
-              bb: 0,
-              sf: 0,
-              k: 0,
-              r: 1,
-            },
-            { playerId: 'stretch', ab: 0, '1b': 0, '2b': 0, '3b': 0, hr: 0, bb: 0, sf: 0, k: 0, r: 0 },
-            { playerId: 'duke', ab: 0, '1b': 0, '2b': 0, '3b': 0, hr: 0, bb: 0, sf: 0, k: 0, r: 0 },
-            { playerId: 'mike-s', ab: 0, '1b': 0, '2b': 0, '3b': 0, hr: 0, bb: 0, sf: 0, k: 0, r: 0 },
-            { playerId: 'big-cat', ab: 0, '1b': 0, '2b': 0, '3b': 0, hr: 0, bb: 0, sf: 0, k: 0, r: 0 },
+            makeLine({ playerId: 'z-man', ab: 1, '1b': 1, r: 1 }),
+            makeLine({ playerId: 'stretch' }),
+            makeLine({ playerId: 'duke' }),
+            makeLine({ playerId: 'mike-s' }),
+            makeLine({ playerId: 'big-cat' }),
           ],
-        },
-        {
+        }),
+        // Home game with a 3-inning linescore and opponent hits.
+        makeGame({
           id: 'linescore-home',
           date: '2025-05-08',
           phase: 'regular',
@@ -74,11 +114,12 @@ vi.mock('../../shared/data', async (importActual) => {
             { us: 4, them: 3 },
           ],
           lines: [
-            { playerId: 'z-man', ab: 4, '1b': 2, '2b': 1, '3b': 0, hr: 0, bb: 0, sf: 0, k: 1, r: 3 },
-            { playerId: 'stretch', ab: 5, '1b': 1, '2b': 2, '3b': 1, hr: 1, bb: 0, sf: 0, k: 0, r: 4 },
+            makeLine({ playerId: 'z-man', ab: 4, '1b': 2, '2b': 1, r: 3 }),
+            makeLine({ playerId: 'stretch', ab: 5, '1b': 1, '2b': 2, '3b': 1, hr: 1, r: 4 }),
           ],
-        },
-        {
+        }),
+        // Away game with a 2-inning linescore and no opponent hits.
+        makeGame({
           id: 'linescore-away',
           date: '2025-05-09',
           phase: 'regular',
@@ -90,20 +131,25 @@ vi.mock('../../shared/data', async (importActual) => {
             { us: 3, them: 2 },
           ],
           lines: [
-            { playerId: 'z-man', ab: 4, '1b': 3, '2b': 1, '3b': 0, hr: 0, bb: 0, sf: 0, k: 0, r: 3 },
-            { playerId: 'stretch', ab: 5, '1b': 2, '2b': 2, '3b': 1, hr: 0, bb: 0, sf: 0, k: 0, r: 3 },
+            makeLine({ playerId: 'z-man', ab: 4, '1b': 3, '2b': 1, r: 3 }),
+            makeLine({ playerId: 'stretch', ab: 5, '1b': 2, '2b': 2, '3b': 1, r: 3 }),
           ],
-        },
+        }),
       ],
-    },
+    }),
   ];
-  const seasons = [...actual.seasons, ...fixtureSeasons].sort((a, b) => a.season - b.season);
+
   return {
-    ...actual,
+    players,
+    teams,
+    locations,
     seasons,
+    getPlayer: (id: string) => players.find((player) => player.id === id),
+    getTeam: (id: string) => teams.find((team) => team.id === id),
+    getLocation: (id: string | undefined) => locations.find((location) => location.id === id),
+    getUsTeamName: () => teams.find((team) => team.us === true)?.name ?? 'Trappers',
     getSeason: (year: number) => seasons.find((season) => season.season === year),
-    getPlayer: actual.getPlayer,
-    getTeam: actual.getTeam,
+    latestSeason: () => seasons.at(-1),
   };
 });
 
@@ -119,10 +165,8 @@ function renderPage(gameId: string) {
   );
 }
 
-import BoxScorePage from './BoxScorePage';
-
 describe('BoxScorePage', () => {
-  it('renders header for a seed game', () => {
+  it('renders header for a full home game', () => {
     renderPage('2026-05-05-hornets');
     expect(screen.getByRole('heading', { name: 'Box Score' })).toBeInTheDocument();
     expect(screen.getByText('2026-05-05')).toBeInTheDocument();
