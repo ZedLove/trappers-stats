@@ -56,6 +56,16 @@ interface LocationOption extends Location {
 
 const locationFilter = createFilterOptions<LocationOption>();
 
+const LINESCORE_CELL_WIDTH = 48;
+const LINESCORE_LABEL_WIDTH = 48;
+
+function inningTextFieldSlotProps(label: string) {
+  return {
+    ...nonNegativeSlotProps,
+    htmlInput: { ...nonNegativeSlotProps.htmlInput, 'aria-label': label },
+  };
+}
+
 function emptyLine(): PlayerLine {
   return {
     playerId: '',
@@ -484,53 +494,57 @@ export default function GameEntry() {
         <Typography variant="h6" component="h2">
           Linescore
         </Typography>
-        {inningFields.map((field, index) => (
-          <Box key={field.id} sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-            <Typography sx={{ width: 72 }}>Inning {index + 1}</Typography>
-            <Controller
-              control={control}
-              name={`innings.${index}.us`}
-              render={({ field: inningField, fieldState }) => (
-                <TextField
-                  type="number"
-                  size="small"
-                  label="Us"
-                  sx={{ width: 72 }}
-                  slotProps={nonNegativeSlotProps}
-                  onKeyDown={blockNegativeKeys}
-                  value={inningField.value}
-                  onChange={(event) =>
-                    inningField.onChange(event.target.value === '' ? 0 : Number(event.target.value))
-                  }
-                  onBlur={inningField.onBlur}
-                  error={!!fieldState.error}
-                  helperText={fieldState.error?.message}
-                />
-              )}
-            />
-            <Controller
-              control={control}
-              name={`innings.${index}.them`}
-              render={({ field: inningField, fieldState }) => (
-                <TextField
-                  type="number"
-                  size="small"
-                  label="Them"
-                  sx={{ width: 72 }}
-                  slotProps={nonNegativeSlotProps}
-                  onKeyDown={blockNegativeKeys}
-                  value={inningField.value}
-                  onChange={(event) =>
-                    inningField.onChange(event.target.value === '' ? 0 : Number(event.target.value))
-                  }
-                  onBlur={inningField.onBlur}
-                  error={!!fieldState.error}
-                  helperText={fieldState.error?.message}
-                />
-              )}
-            />
+        <Box sx={{ overflowX: 'auto' }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, width: 'max-content' }}>
+            <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+              <Box sx={{ width: LINESCORE_LABEL_WIDTH }} />
+              {inningFields.map((field, index) => (
+                <Typography
+                  key={field.id}
+                  data-testid={`inning-${index + 1}`}
+                  sx={{ width: LINESCORE_CELL_WIDTH, textAlign: 'center' }}
+                >
+                  {index + 1}
+                </Typography>
+              ))}
+            </Box>
+            {(['us', 'them'] as const).map((side) => (
+              <Box key={side} sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                <Typography sx={{ width: LINESCORE_LABEL_WIDTH }}>
+                  {side === 'us' ? 'Us' : 'Them'}
+                </Typography>
+                {inningFields.map((field, index) => (
+                  <Controller
+                    key={field.id}
+                    control={control}
+                    name={`innings.${index}.${side}`}
+                    render={({ field: inningField, fieldState }) => (
+                      <TextField
+                        type="number"
+                        size="small"
+                        sx={{
+                          width: LINESCORE_CELL_WIDTH,
+                          '& input': { textAlign: 'center' },
+                        }}
+                        slotProps={inningTextFieldSlotProps(side === 'us' ? 'Us' : 'Them')}
+                        onKeyDown={blockNegativeKeys}
+                        value={inningField.value}
+                        onChange={(event) =>
+                          inningField.onChange(
+                            event.target.value === '' ? 0 : Number(event.target.value),
+                          )
+                        }
+                        onBlur={inningField.onBlur}
+                        error={!!fieldState.error}
+                        helperText={fieldState.error?.message}
+                      />
+                    )}
+                  />
+                ))}
+              </Box>
+            ))}
           </Box>
-        ))}
+        </Box>
         <Box sx={{ display: 'flex', gap: 1 }}>
           <Button size="small" onClick={() => appendInning(emptyInning())}>
             Add inning

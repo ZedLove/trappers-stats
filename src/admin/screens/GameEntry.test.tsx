@@ -189,11 +189,11 @@ describe('GameEntry', () => {
 
     const usInputs = () => screen.getAllByLabelText('Us');
     expect(usInputs()).toHaveLength(9);
-    expect(screen.getByText('Inning 9')).toBeInTheDocument();
+    expect(screen.getByTestId('inning-9')).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: 'Add inning' }));
     expect(usInputs()).toHaveLength(10);
-    expect(screen.getByText('Inning 10')).toBeInTheDocument();
+    expect(screen.getByTestId('inning-10')).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: 'Remove inning' }));
     fireEvent.click(screen.getByRole('button', { name: 'Remove inning' }));
