@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
-import { CssBaseline, ThemeProvider } from '@mui/material';
+import { CssBaseline, GlobalStyles, ThemeProvider } from '@mui/material';
 import { darkTheme, lightTheme } from './theme';
 import { ThemeModeContext } from './themeMode';
 import type { ThemeMode } from './themeMode';
@@ -31,6 +31,14 @@ export function ThemeModeProvider({ children }: { children: ReactNode }) {
     <ThemeModeContext.Provider value={value}>
       <ThemeProvider theme={theme}>
         <CssBaseline />
+        <GlobalStyles
+          styles={{
+            // Hide the native number-input spinner arrows (admin numeric fields).
+            'input[type="number"]::-webkit-inner-spin-button, input[type="number"]::-webkit-outer-spin-button':
+              { WebkitAppearance: 'none', margin: 0 },
+            'input[type="number"]': { MozAppearance: 'textfield', appearance: 'textfield' },
+          }}
+        />
         {children}
       </ThemeProvider>
     </ThemeModeContext.Provider>
