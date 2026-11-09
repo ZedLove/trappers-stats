@@ -2,6 +2,7 @@ import type { ZodError } from 'zod';
 import locationsJson from '../../data/locations.json';
 import playersJson from '../../data/players.json';
 import teamsJson from '../../data/teams.json';
+import { buildDemoDataset } from '../fixtures/fixtures';
 import {
   LocationsFileSchema,
   PlayersFileSchema,
@@ -29,38 +30,48 @@ function formatIssues(label: string, error: ZodError): string[] {
   });
 }
 
-// Parse + cross-validate everything at module load, aggregating every issue
-// so a bad hand-edit fails `vite build` with the full list at once.
-function loadData(): {
+interface RawData {
+  players: unknown;
+  teams: unknown;
+  locations: unknown;
+  seasons: Record<string, unknown>;
+}
+
+interface LoadedData {
   players: PlayersFile;
   teams: TeamsFile;
   locations: LocationsFile;
   seasons: SeasonFile[];
-} {
+}
+
+// Parse + cross-validate everything, aggregating every issue so a bad hand-edit
+// fails `vite build` with the full list at once. Shared by the real-data and
+// demo-data sources so both pass through the exact same validation path.
+function validateAndLoad(raw: RawData): LoadedData {
   const issues: string[] = [];
 
-  const playersResult = PlayersFileSchema.safeParse(playersJson);
+  const playersResult = PlayersFileSchema.safeParse(raw.players);
   if (!playersResult.success) {
     issues.push(...formatIssues('players.json', playersResult.error));
   }
 
-  const teamsResult = TeamsFileSchema.safeParse(teamsJson);
+  const teamsResult = TeamsFileSchema.safeParse(raw.teams);
   if (!teamsResult.success) {
     issues.push(...formatIssues('teams.json', teamsResult.error));
   }
 
-  const locationsResult = LocationsFileSchema.safeParse(locationsJson);
+  const locationsResult = LocationsFileSchema.safeParse(raw.locations);
   if (!locationsResult.success) {
     issues.push(...formatIssues('locations.json', locationsResult.error));
   }
 
   const seasonsRecord: Record<string, SeasonFile> = {};
   let seasonsValid = true;
-  for (const [path, module] of Object.entries(seasonModules)) {
-    const fileName = path.split('/').pop() ?? path;
+  for (const [seasonKey, module] of Object.entries(raw.seasons)) {
+    const fileName = `${seasonKey}.json`;
     const result = SeasonFileSchema.safeParse(module);
     if (result.success) {
-      seasonsRecord[fileName.replace(/\.json$/, '')] = result.data;
+      seasonsRecord[seasonKey] = result.data;
     } else {
       seasonsValid = false;
       issues.push(...formatIssues(`seasons/${fileName}`, result.error));
@@ -98,7 +109,40 @@ function loadData(): {
   };
 }
 
-const data = loadData();
+// Real data: the hand-edited JSON files under `data/` plus one file per season.
+function realSource(): RawData {
+  const seasons: Record<string, unknown> = {};
+  for (const [path, module] of Object.entries(seasonModules)) {
+    const fileName = path.split('/').pop() ?? path;
+    seasons[fileName.replace(/\.json$/, '')] = module;
+  }
+  return {
+    players: playersJson,
+    teams: teamsJson,
+    locations: locationsJson,
+    seasons,
+  };
+}
+
+// Demo data: the deterministic fixture-generated dataset, wrapped into the same
+// file shapes the real source produces.
+function demoSource(): RawData {
+  const dataset = buildDemoDataset();
+  return {
+    players: { players: dataset.players },
+    teams: { teams: dataset.teams },
+    locations: { locations: dataset.locations },
+    seasons: Object.fromEntries(dataset.seasons.map((season) => [String(season.season), season])),
+  };
+}
+
+// `import.meta.env.DEV` is statically `false` in production builds, so the demo
+// branch (and the `buildDemoDataset` import feeding it) is dead code there and
+// gets tree-shaken out of the shipped bundle. Keep this on the compile-time env
+// flag, not a runtime one.
+const useDemoData = import.meta.env.DEV && import.meta.env.VITE_DEMO_DATA === 'true';
+
+const data = validateAndLoad(useDemoData ? demoSource() : realSource());
 
 export const players: PlayersFile = data.players;
 export const teams: TeamsFile = data.teams;

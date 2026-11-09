@@ -82,3 +82,6 @@ npm test        # unit + component tests (Vitest)
 npm run lint    # ESLint
 npm run build   # typecheck + production build (also validates data/)
 ```
+
+`npm run dev:demo` serves the fixture-generated demo data for UI development, while
+`npm run dev` uses the real `data/` files.
