@@ -1,12 +1,74 @@
 // @vitest-environment jsdom
 import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import { MemoryRouter, useLocation } from 'react-router-dom';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { PlayerLine } from '../../shared/schema';
 import { deriveStats, sumLines } from '../../shared/stats';
 import StatsPage from '../pages/StatsPage';
 import SeasonPhaseControls from './SeasonPhaseControls';
 import StatsGrid from './StatsGrid';
+
+// Self-contained fixture data. The StatsGrid unit tests derive rows locally,
+// but the page/controls tests resolve player names, seasons, and leaderboards
+// through the data module — so we mock it instead of relying on seed data.
+vi.mock('../../shared/data', async () => {
+  const { makeGame, makeLine, makePlayer, makeSeason } = await import('../../fixtures/fixtures');
+  const players = [
+    makePlayer({ id: 'z-man', name: 'Z-Man' }),
+    makePlayer({ id: 'stretch', name: 'Stretch' }),
+    makePlayer({ id: 'jo-jo', name: 'Jo Jo' }),
+  ];
+  const seasons = [
+    makeSeason({
+      season: 2026,
+      division: 'B',
+      games: [
+        // Z-Man 2-for-4 in the regular season (.500 AVG).
+        makeGame({
+          id: 'g-regular',
+          date: '2026-05-05',
+          phase: 'regular',
+          opponentId: 'hornets',
+          isHome: true,
+          score: { us: 7, them: 5 },
+          lines: [makeLine({ playerId: 'z-man', ab: 4, '1b': 2 })],
+        }),
+        // Z-Man 1-for-3 plus a walk in the round robin.
+        makeGame({
+          id: 'g-round-robin',
+          date: '2026-06-02',
+          phase: 'round_robin',
+          opponentId: 'bandits',
+          isHome: false,
+          score: { us: 5, them: 4 },
+          lines: [makeLine({ playerId: 'z-man', ab: 3, '1b': 1, bb: 1 })],
+        }),
+        // Z-Man 2-for-4 in the playoffs; 5-for-11 (.455) across the season.
+        makeGame({
+          id: 'g-playoff',
+          date: '2026-06-23',
+          phase: 'playoff',
+          opponentId: 'wildcats',
+          isHome: true,
+          score: { us: 6, them: 5 },
+          lines: [makeLine({ playerId: 'z-man', ab: 4, '1b': 1, '2b': 1 })],
+        }),
+      ],
+    }),
+  ];
+  return {
+    players,
+    teams: [],
+    locations: [],
+    seasons,
+    getPlayer: (id: string) => players.find((player) => player.id === id),
+    getTeam: () => undefined,
+    getLocation: () => undefined,
+    getUsTeamName: () => 'Trappers',
+    getSeason: (year: number) => seasons.find((season) => season.season === year),
+    latestSeason: () => seasons.at(-1),
+  };
+});
 
 afterEach(() => {
   cleanup();

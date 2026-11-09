@@ -1,8 +1,27 @@
 // @vitest-environment jsdom
 import { cleanup, render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import SiteBreadcrumbs from './SiteBreadcrumbs';
+
+// Self-contained player fixture so the breadcrumb resolves "Z-Man" without
+// relying on the seed data in data/players.json.
+vi.mock('../../shared/data', async () => {
+  const { makePlayer } = await import('../../fixtures/fixtures');
+  const players = [makePlayer({ id: 'z-man', name: 'Z-Man' })];
+  return {
+    players,
+    teams: [],
+    locations: [],
+    seasons: [],
+    getPlayer: (id: string) => players.find((player) => player.id === id),
+    getTeam: () => undefined,
+    getLocation: () => undefined,
+    getUsTeamName: () => 'Trappers',
+    getSeason: () => undefined,
+    latestSeason: () => undefined,
+  };
+});
 
 afterEach(cleanup);
 

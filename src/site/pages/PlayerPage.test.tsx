@@ -1,8 +1,71 @@
 // @vitest-environment jsdom
 import { cleanup, render, screen, within } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import PlayerPage from './PlayerPage';
+
+// Self-contained fixture dataset for one player across three games (regular,
+// round-robin, playoff) so the career/season/game-log tables are deterministic
+// without depending on data/seasons/*.json.
+vi.mock('../../shared/data', async () => {
+  const { makeGame, makeLine, makePlayer, makeSeason, makeTeam } = await import(
+    '../../fixtures/fixtures'
+  );
+  const players = [makePlayer({ id: 'z-man', name: 'Z-Man' })];
+  const teams = [
+    makeTeam({ id: 'trappers', name: 'Trappers', us: true }),
+    makeTeam({ id: 'hornets', name: 'Hornets' }),
+    makeTeam({ id: 'bandits', name: 'Bandits' }),
+    makeTeam({ id: 'wildcats', name: 'Wildcats' }),
+  ];
+  const seasons = [
+    makeSeason({
+      season: 2026,
+      division: 'B',
+      games: [
+        makeGame({
+          id: '2026-05-05-hornets',
+          date: '2026-05-05',
+          phase: 'regular',
+          opponentId: 'hornets',
+          isHome: true,
+          score: { us: 7, them: 5 },
+          lines: [makeLine({ playerId: 'z-man', ab: 4, '1b': 2, r: 2 })],
+        }),
+        makeGame({
+          id: '2026-06-02-bandits',
+          date: '2026-06-02',
+          phase: 'round_robin',
+          opponentId: 'bandits',
+          isHome: false,
+          score: { us: 5, them: 4 },
+          lines: [makeLine({ playerId: 'z-man', ab: 3, '1b': 1, bb: 1, r: 1 })],
+        }),
+        makeGame({
+          id: '2026-06-23-wildcats',
+          date: '2026-06-23',
+          phase: 'playoff',
+          opponentId: 'wildcats',
+          isHome: true,
+          score: { us: 6, them: 5 },
+          lines: [makeLine({ playerId: 'z-man', ab: 4, '1b': 1, '2b': 1, r: 2 })],
+        }),
+      ],
+    }),
+  ];
+  return {
+    players,
+    teams,
+    locations: [],
+    seasons,
+    getPlayer: (id: string) => players.find((player) => player.id === id),
+    getTeam: (id: string) => teams.find((team) => team.id === id),
+    getLocation: () => undefined,
+    getUsTeamName: () => teams.find((team) => team.us === true)?.name ?? 'Trappers',
+    getSeason: (year: number) => seasons.find((season) => season.season === year),
+    latestSeason: () => seasons.at(-1),
+  };
+});
 
 afterEach(cleanup);
 
@@ -33,7 +96,7 @@ function bodyRowTexts(table: HTMLElement): string[][] {
     .map((row) => within(row).getAllByRole('cell').map((cell) => cell.textContent ?? ''));
 }
 
-// Z-Man's seed line, hand-computed from data/seasons/2026.json:
+// Z-Man's career line, hand-computed from the fixture games:
 // G=3 PA=12 AB=11 R=5 H=5 1B=4 2B=1 3B=0 HR=0 BB=1 K=0 -> .455/.500/.545/1.045
 const Z_MAN_CAREER = [
   '3',
