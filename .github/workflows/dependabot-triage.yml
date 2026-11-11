@@ -148,4 +148,4 @@ jobs:
           PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
           set -euo pipefail
-          gh pr merge --auto --squash "$PR_NUMBER" 
+          gh pr merge --auto --rebase "$PR_NUMBER" 
