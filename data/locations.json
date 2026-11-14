@@ -1,1 +1,12 @@
-{ "locations": [] }
+{
+  "locations": [
+    {
+      "id": "peter-hallman-1",
+      "name": "Peter Hallman 1"
+    },
+    {
+      "id": "peter-hallman-2",
+      "name": "Peter Hallman 2"
+    }
+  ]
+}

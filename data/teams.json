@@ -1,1 +1,29 @@
-{ "teams": [{ "id": "trappers", "name": "Trappers", "us": true }] }
+{
+  "teams": [
+    {
+      "id": "trappers",
+      "name": "Trappers",
+      "us": true
+    },
+    {
+      "id": "vipers",
+      "name": "Vipers"
+    },
+    {
+      "id": "the-big-os",
+      "name": "The Big O's"
+    },
+    {
+      "id": "jr-5-5",
+      "name": "JR 5.5"
+    },
+    {
+      "id": "blitz",
+      "name": "Blitz"
+    },
+    {
+      "id": "devil-horns",
+      "name": "Devil Horns"
+    }
+  ]
+}

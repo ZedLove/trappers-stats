@@ -1,1 +1,64 @@
-{ "players": [] }
+{
+  "players": [
+    {
+      "id": "evan-h",
+      "name": "Evan H"
+    },
+    {
+      "id": "chris-r",
+      "name": "Chris R"
+    },
+    {
+      "id": "josh-m",
+      "name": "Josh M"
+    },
+    {
+      "id": "c-b",
+      "name": "C B"
+    },
+    {
+      "id": "shaun",
+      "name": "Shaun"
+    },
+    {
+      "id": "chilly",
+      "name": "Chilly"
+    },
+    {
+      "id": "cody-y",
+      "name": "Cody Y"
+    },
+    {
+      "id": "ryan-y",
+      "name": "Ryan Y"
+    },
+    {
+      "id": "cam-m",
+      "name": "Cam M"
+    },
+    {
+      "id": "popi",
+      "name": "Popi"
+    },
+    {
+      "id": "jim-s",
+      "name": "Jim S"
+    },
+    {
+      "id": "erich-w",
+      "name": "Erich W"
+    },
+    {
+      "id": "sean",
+      "name": "Sean"
+    },
+    {
+      "id": "grimba",
+      "name": "Grimba"
+    },
+    {
+      "id": "reist",
+      "name": "Reist"
+    }
+  ]
+}
