@@ -2189,7 +2189,7 @@
     {
       "id": "2026-07-13-jr-5-5",
       "date": "2026-07-13",
-      "phase": "regular",
+      "phase": "round_robin",
       "opponentId": "jr-5-5",
       "isHome": true,
       "locationId": "peter-hallman-2",
@@ -2401,7 +2401,7 @@
     {
       "id": "2026-07-20-the-big-os",
       "date": "2026-07-20",
-      "phase": "regular",
+      "phase": "round_robin",
       "opponentId": "the-big-os",
       "isHome": true,
       "locationId": "peter-hallman-2",
@@ -2585,7 +2585,7 @@
     {
       "id": "2026-07-20-brew-crew",
       "date": "2026-07-20",
-      "phase": "regular",
+      "phase": "round_robin",
       "opponentId": "brew-crew",
       "isHome": true,
       "locationId": "peter-hallman-2",
@@ -3489,7 +3489,7 @@
           "r": 0
         },
         {
-          "playerId": "jim-s",
+          "playerId": "zak-n",
           "ab": 3,
           "1b": 2,
           "2b": 0,
@@ -3501,7 +3501,7 @@
           "r": 1
         },
         {
-          "playerId": "zak-n",
+          "playerId": "jim-s",
           "ab": 3,
           "1b": 2,
           "2b": 0,

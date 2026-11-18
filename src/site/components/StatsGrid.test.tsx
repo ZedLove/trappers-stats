@@ -190,6 +190,15 @@ describe('StatsGrid', () => {
     ).toEqual(['/players/stretch', '/players/z-man', '/players/jo-jo']);
   });
 
+  it('marks the Player column for sticky positioning', () => {
+    renderGrid();
+    // The sticky-column CSS in theme.ts targets [data-field="name"] on both
+    // header and body cells; guard that hook so the pin keeps working.
+    const nameHeader = within(gridContainer()).getByRole('columnheader', { name: 'Player' });
+    expect(nameHeader).toHaveAttribute('data-field', 'name');
+    expect(playerRow('Z-Man').querySelector('[data-field="name"]')).not.toBeNull();
+  });
+
   it('shows a friendly message for an empty season instead of crashing', () => {
     renderGrid([]);
     expect(screen.getByText(/no games yet/i)).toBeInTheDocument();
