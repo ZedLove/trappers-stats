@@ -12,10 +12,15 @@ const PHASE_OPTIONS: Array<{ value: 'all' | Phase; label: string }> = [
 
 export interface SeasonPhaseControlsProps {
   showAllTime?: boolean;
+  /** Show the qualified/all-players select (stats pages only). */
+  showQualification?: boolean;
 }
 
-export default function SeasonPhaseControls({ showAllTime = true }: SeasonPhaseControlsProps) {
-  const { filter, setSeason, setPhase } = useSeasonFilter();
+export default function SeasonPhaseControls({
+  showAllTime = true,
+  showQualification = false,
+}: SeasonPhaseControlsProps) {
+  const { filter, qualified, setSeason, setPhase, setQualified } = useSeasonFilter();
 
   // With no All-time option, an 'all' filter would have no matching MenuItem;
   // display the latest season instead (pages make the same fallback).
@@ -59,6 +64,20 @@ export default function SeasonPhaseControls({ showAllTime = true }: SeasonPhaseC
           ))}
         </Select>
       </FormControl>
+      {showQualification && (
+        <FormControl size="small" sx={{ minWidth: 150 }}>
+          <InputLabel id="qualification-select-label">Players</InputLabel>
+          <Select
+            labelId="qualification-select-label"
+            label="Players"
+            value={qualified ? 'qualified' : 'all'}
+            onChange={(event) => setQualified(event.target.value === 'qualified')}
+          >
+            <MenuItem value="qualified">Qualified</MenuItem>
+            <MenuItem value="all">All players</MenuItem>
+          </Select>
+        </FormControl>
+      )}
     </Box>
   );
 }

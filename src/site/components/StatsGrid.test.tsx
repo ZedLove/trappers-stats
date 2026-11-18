@@ -31,7 +31,10 @@ vi.mock('../../shared/data', async () => {
           opponentId: 'hornets',
           isHome: true,
           score: { us: 7, them: 5 },
-          lines: [makeLine({ playerId: 'z-man', ab: 4, '1b': 2 })],
+          lines: [
+            makeLine({ playerId: 'z-man', ab: 4, '1b': 2 }),
+            makeLine({ playerId: 'jo-jo', ab: 1 }), // 1 PA — below 1.58 × 3 games
+          ],
         }),
         // Z-Man 1-for-3 plus a walk in the round robin.
         makeGame({
@@ -395,6 +398,26 @@ describe('SeasonPhaseControls', () => {
     fireEvent.click(screen.getByRole('option', { name: 'Regular Season' }));
     expect(screen.getByTestId('search')).toHaveTextContent('phase=regular');
   });
+
+  it('offers a qualified/all-players toggle only when asked', () => {
+    render(
+      <MemoryRouter>
+        <SeasonPhaseControls />
+      </MemoryRouter>,
+    );
+    expect(screen.queryByRole('combobox', { name: 'Players' })).not.toBeInTheDocument();
+    cleanup();
+
+    render(
+      <MemoryRouter>
+        <SeasonPhaseControls showQualification />
+      </MemoryRouter>,
+    );
+    const players = screen.getByRole('combobox', { name: 'Players' });
+    expect(players).toHaveTextContent('Qualified'); // default
+    fireEvent.mouseDown(players);
+    expect(screen.getAllByRole('option').map((option) => option.textContent)).toContain('All players');
+  });
 });
 
 function renderPage(initialEntries: string[]) {
@@ -424,5 +447,20 @@ describe('StatsPage', () => {
   it('accepts season=all from the URL', () => {
     renderPage(['/?season=all']);
     expect(cellText(playerRow('Z-Man'), 'avg')).toBe('.455');
+  });
+
+  it('hides unqualified players by default', () => {
+    renderPage(['/']);
+    expect(screen.getByRole('combobox', { name: 'Players' })).toHaveTextContent('Qualified');
+    expect(within(gridContainer()).getByRole('link', { name: 'Z-Man' })).toBeInTheDocument();
+    expect(within(gridContainer()).queryByRole('link', { name: 'Jo Jo' })).not.toBeInTheDocument();
+  });
+
+  it('shows every player when the qualification toggle is turned off', () => {
+    renderPage(['/']);
+    fireEvent.mouseDown(screen.getByRole('combobox', { name: 'Players' }));
+    fireEvent.click(screen.getByRole('option', { name: 'All players' }));
+    expect(within(gridContainer()).getByRole('link', { name: 'Jo Jo' })).toBeInTheDocument();
+    expect(within(cardList()).getByRole('link', { name: 'Jo Jo' })).toBeInTheDocument();
   });
 });
