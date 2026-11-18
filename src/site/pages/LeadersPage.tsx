@@ -12,10 +12,13 @@ import {
 } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import {
+  Activity,
   Award,
   Crown,
   Flame,
+  Footprints,
   Medal,
+  ShieldCheck,
   Star,
   Target,
   TrendingUp,
@@ -30,31 +33,40 @@ import {
   type LeaderField,
   type LeaderRow,
   leadersFor,
+  rankEntries,
 } from '../../shared/leaders';
 import { filterGames, leaderboard, type SeasonFilter } from '../../shared/queries';
 import { formatRate } from '../../shared/stats';
+import { type StreakField, streaksFor } from '../../shared/streaks';
 import EmptyState from '../components/EmptyState';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 
 interface Category {
-  field: LeaderField;
+  field: LeaderField | StreakField;
   label: string;
   short: string;
   rate: boolean;
   icon: LucideIcon;
 }
 
-const TRIPLE_CROWN: Category[] = [
+const TRIPLE_CROWN: Array<Category & { field: LeaderField }> = [
   { field: 'avg', label: 'Batting Average', short: 'AVG', rate: true, icon: Target },
   { field: 'ops', label: 'OPS', short: 'OPS', rate: true, icon: Zap },
   { field: 'hr', label: 'Home Runs', short: 'HR', rate: false, icon: Flame },
 ];
 
-const HONOURABLE_MENTIONS: Category[] = [
+const HONOURABLE_MENTIONS: Array<Category & { field: LeaderField }> = [
   { field: 'singles', label: 'Singles', short: '1B', rate: false, icon: Star },
   { field: 'doubles', label: 'Doubles', short: '2B', rate: false, icon: Medal },
   { field: 'triples', label: 'Triples', short: '3B', rate: false, icon: TrendingUp },
   { field: 'bb', label: 'Walks', short: 'BB', rate: false, icon: Award },
+];
+
+const STREAKS: Array<Category & { field: StreakField }> = [
+  { field: 'hit', label: 'Hit Streak', short: 'HIT', rate: false, icon: Activity },
+  { field: 'onbase', label: 'On-base Streak', short: 'OB', rate: false, icon: Footprints },
+  { field: 'nok', label: 'Strikeout-less Streak', short: '0K', rate: false, icon: ShieldCheck },
+  { field: 'xbh', label: 'Extra Base Streak', short: 'XBH', rate: false, icon: Flame },
 ];
 
 // The podium shrinks as rank increases; places four and five read as plain text.
@@ -139,6 +151,7 @@ function LeaderEntryView({
         sx={{ minWidth: 48, flexShrink: 0, textAlign: 'right', whiteSpace: 'nowrap', lineHeight: 1.15, fontWeight: podium ? 700 : 400 }}
       >
         {formatValue(category, value)}
+        {entry.active ? '*' : ''}
       </Typography>
       <Typography
         component="span"
@@ -232,16 +245,9 @@ function PageHeader({
 }) {
   return (
     <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
-      <Box>
-        <Typography variant="h4" component="h1">
-          Leaders
-        </Typography>
-        <Typography variant="subtitle1" color="text.secondary">
-          {season === 'all'
-            ? 'All-time offensive leaders across every season.'
-            : `${season} offensive leaders.`}
-        </Typography>
-      </Box>
+      <Typography variant="h4" component="h1">
+        Leaders
+      </Typography>
       <FormControl size="small" sx={{ minWidth: 160, ml: { sm: 'auto' } }}>
         <InputLabel id="leaders-season-label">Season</InputLabel>
         <Select
@@ -285,6 +291,18 @@ export default function LeadersPage() {
   }));
   // Qualification scales with the games played in whichever period is viewed.
   const teamGames = filterGames(seasons, filter).length;
+
+  function streakEntries(field: StreakField): LeaderEntry[] {
+    const byPlayer = new Map(streaksFor(seasons, filter, field).map((s) => [s.playerId, s]));
+    return rankEntries(
+      rows.flatMap((row) => {
+        const streak = byPlayer.get(row.playerId);
+        return streak && streak.longest > 0
+          ? [{ row, value: streak.longest, active: streak.active }]
+          : [];
+      }),
+    );
+  }
 
   function changeSeason(value: string) {
     setSearchParams(
@@ -365,6 +383,34 @@ export default function LeadersPage() {
             />
           ))}
         </Box>
+      </Paper>
+
+      <Paper variant="outlined" sx={{ p: 2 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+          <Activity size={22} aria-hidden />
+          <Typography variant="h6" component="h2">
+            Streaks
+          </Typography>
+          <Chip label="HIT · OB · 0K · XBH" size="small" variant="outlined" sx={{ ml: 'auto' }} />
+        </Box>
+        <Box
+          sx={{
+            display: 'grid',
+            gap: 2,
+            gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(4, 1fr)' },
+          }}
+        >
+          {STREAKS.map((category) => (
+            <LeaderCard
+              key={category.field}
+              category={category}
+              entries={streakEntries(category.field)}
+            />
+          ))}
+        </Box>
+        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1.5 }}>
+          * denotes active streak
+        </Typography>
       </Paper>
     </Box>
   );
