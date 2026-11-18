@@ -80,6 +80,49 @@ describe('StatsCards', () => {
     expect(cardNames()).toEqual(['Beta', 'Alpha']); // G desc
   });
 
+  it('highlights AVG by default in the unchanged G/AVG/OBP/SLG/OPS row', () => {
+    renderCards();
+    const card = screen.getAllByRole('listitem')[0];
+    expect(within(card).getByTestId('stat-g')).toBeInTheDocument();
+    expect(within(card).getByTestId('stat-avg')).toHaveClass('MuiTypography-h6');
+    expect(within(card).getByTestId('stat-g')).toHaveClass('MuiTypography-body1');
+  });
+
+  it('moves only the emphasis when sorting by a rate stat', () => {
+    renderCards();
+    fireEvent.click(screen.getByRole('button', { name: 'OBP' }));
+    const card = screen.getAllByRole('listitem')[0];
+    // The compact row is unchanged — G stays, and every rate is still shown.
+    for (const field of ['g', 'avg', 'obp', 'slg', 'ops']) {
+      expect(within(card).getByTestId(`stat-${field}`)).toBeInTheDocument();
+    }
+    expect(within(card).getByTestId('stat-obp')).toHaveClass('MuiTypography-h6');
+    expect(within(card).getByTestId('stat-avg')).toHaveClass('MuiTypography-body1');
+  });
+
+  it('swaps G for the active counting stat and keeps G in the detail grid', () => {
+    renderCards();
+    fireEvent.click(screen.getByRole('button', { name: 'HR' }));
+    const card = screen.getAllByRole('listitem')[0];
+
+    expect(within(card).getByTestId('stat-hr')).toHaveClass('MuiTypography-h6');
+    // No rate stat is emphasized while sorting by a counting stat.
+    expect(within(card).getByTestId('stat-avg')).toHaveClass('MuiTypography-body1');
+    expect(within(card).queryByTestId('stat-g')).not.toBeInTheDocument();
+
+    fireEvent.click(within(card).getByRole('button', { name: /all stats for/ }));
+    expect(within(card).getByTestId('stat-g')).toHaveClass('MuiTypography-body1');
+    expect(within(card).getAllByTestId('stat-hr')).toHaveLength(1);
+  });
+
+  it('uses the chip label for the swapped slot (SO for strikeouts)', () => {
+    renderCards();
+    fireEvent.click(screen.getByRole('button', { name: 'SO' }));
+    const card = screen.getAllByRole('listitem')[0];
+    expect(within(card).getByText('SO')).toBeInTheDocument();
+    expect(within(card).getByTestId('stat-k')).toHaveClass('MuiTypography-h6');
+  });
+
   it('keeps undefined rate stats last when sorting', () => {
     const withNull: PlayerStatRow[] = [
       ...ROWS,
