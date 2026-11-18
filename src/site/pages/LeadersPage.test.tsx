@@ -42,7 +42,7 @@ vi.mock('../../shared/data', async () => {
             makeLine({ playerId: 'alpha', ab: 4, hr: 1 }),
             makeLine({ playerId: 'beta', ab: 4, hr: 2 }),
             makeLine({ playerId: 'gamma', bb: 2 }),
-            makeLine({ playerId: 'delta', ab: 4, '2b': 1 }),
+            makeLine({ playerId: 'delta', ab: 4 }), // hitless — ends Delta's hit streak
             makeLine({ playerId: 'epsilon', ab: 4, '3b': 1 }),
           ],
         }),
@@ -91,12 +91,13 @@ function entry(field: string, position: number, scope: HTMLElement): HTMLElement
 }
 
 describe('LeadersPage', () => {
-  it('renders the two Paper sections and an all-time subtitle', () => {
+  it('renders the three Paper sections without a tagline', () => {
     renderPage();
     expect(screen.getByRole('heading', { name: 'Leaders', level: 1 })).toBeInTheDocument();
-    expect(screen.getByText(/all-time offensive leaders/i)).toBeInTheDocument();
+    expect(screen.queryByText(/offensive leaders across every season/i)).not.toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'The Triple Crown' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Honourable Mentions' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Streaks' })).toBeInTheDocument();
   });
 
   it('shows five ranked entries with shrinking type for places 1-3 and paragraph text for 4-5', () => {
@@ -133,12 +134,10 @@ describe('LeadersPage', () => {
     renderPage();
     const season = screen.getByRole('combobox', { name: 'Season' });
     expect(season).toHaveTextContent('All-time');
-    expect(screen.getByText(/all-time offensive leaders/i)).toBeInTheDocument();
 
     fireEvent.mouseDown(season);
     fireEvent.click(screen.getByRole('option', { name: '2026' }));
 
-    expect(screen.getByText('2026 offensive leaders.')).toBeInTheDocument();
     expect(screen.getByRole('combobox', { name: 'Season' })).toHaveTextContent('2026');
   });
 
@@ -185,6 +184,56 @@ describe('LeadersPage', () => {
     expect(within(walks).getAllByRole('listitem')).toHaveLength(5);
     expect(within(walks).getByTestId('leader-bb-1-value')).toHaveTextContent('3');
     expect(within(walks).getByRole('link', { name: 'Gamma' })).toBeInTheDocument();
+  });
+
+  it('shows all four streak categories with the active-streak footnote', () => {
+    renderPage();
+    const streaks = section('Streaks');
+    for (const field of ['hit', 'onbase', 'nok', 'xbh']) {
+      expect(card(field, streaks)).toBeInTheDocument();
+    }
+    expect(within(streaks).getByText(/\* denotes active streak/i)).toBeInTheDocument();
+  });
+
+  it('marks ongoing streaks with an asterisk and leaves completed ones plain', () => {
+    renderPage();
+    const streaks = section('Streaks');
+    const hits = card('hit', streaks);
+
+    // Alpha's 2-game hit streak is still alive; Delta went hitless in game two.
+    expect(within(hits).getByTestId('leader-hit-1-value')).toHaveTextContent('2*');
+    expect(within(hits).getByTestId('leader-hit-4-value')).toHaveTextContent('1');
+    expect(within(hits).getByTestId('leader-hit-4-value')).not.toHaveTextContent('*');
+  });
+
+  it('ranks extra-base streaks by consecutive 2B/3B/HR games', () => {
+    renderPage();
+    const xbh = card('xbh', section('Streaks'));
+    expect(within(xbh).getByTestId('leader-xbh-1-value')).toHaveTextContent('2*');
+    expect(within(xbh).getByRole('link', { name: 'Beta' })).toBeInTheDocument();
+    expect(within(xbh).getByTestId('leader-xbh-3-value')).toHaveTextContent('1');
+  });
+
+  it('shows empty states for streak categories with no qualifying games', () => {
+    testState.seasons = [
+      {
+        season: 2026,
+        division: null,
+        games: [
+          {
+            id: 'empty',
+            date: '2026-05-01',
+            phase: 'regular',
+            opponentId: 't1',
+            isHome: true,
+            score: { us: 0, them: 0 },
+            lines: [{ playerId: 'alpha', ab: 3, '1b': 0, '2b': 0, '3b': 0, hr: 0, bb: 0, sf: 0, k: 0, r: 0 }],
+          },
+        ],
+      },
+    ];
+    renderPage();
+    expect(within(card('xbh', section('Streaks'))).getByText(/no qualifying players yet/i)).toBeInTheDocument();
   });
 
   it('shows an empty state when there are no games', () => {

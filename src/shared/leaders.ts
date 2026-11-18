@@ -22,6 +22,29 @@ export interface LeaderEntry {
   rank: number;
   value: number;
   row: LeaderRow;
+  /** Set for streak categories whose best run is still alive. */
+  active?: boolean;
+}
+
+type Rankable = { row: LeaderRow; value: number; active?: boolean };
+
+/** Ranks arbitrary scored rows, shared by the stat and streak categories. */
+export function rankEntries(items: Rankable[], limit = 5): LeaderEntry[] {
+  const sorted = [...items].sort(
+    (a, b) => b.value - a.value || b.row.pa - a.row.pa || a.row.name.localeCompare(b.row.name),
+  );
+
+  let currentRank = 0;
+  let previousValue: number | null = null;
+  const ranked = sorted.map((item, index) => {
+    if (item.value !== previousValue) {
+      currentRank = index + 1;
+      previousValue = item.value;
+    }
+    return { ...item, rank: currentRank };
+  });
+
+  return ranked.slice(0, limit);
 }
 
 /**
@@ -36,27 +59,13 @@ export function leadersFor(
   teamGames: number,
   limit = 5,
 ): LeaderEntry[] {
-  const eligible = rows.filter((row) => {
-    const value = row[field];
-    if (value === null) return false;
-    return !RATE_FIELDS.has(field) || isQualified(row, teamGames);
-  });
+  const eligible = rows
+    .filter((row) => {
+      const value = row[field];
+      if (value === null) return false;
+      return !RATE_FIELDS.has(field) || isQualified(row, teamGames);
+    })
+    .map((row) => ({ row, value: row[field] as number }));
 
-  const sorted = [...eligible].sort((a, b) => {
-    const difference = (b[field] as number) - (a[field] as number);
-    return difference || b.pa - a.pa || a.name.localeCompare(b.name);
-  });
-
-  let currentRank = 0;
-  let previousValue: number | null = null;
-  const ranked = sorted.map((row, index) => {
-    const value = row[field] as number;
-    if (value !== previousValue) {
-      currentRank = index + 1;
-      previousValue = value;
-    }
-    return { rank: currentRank, value, row };
-  });
-
-  return ranked.slice(0, limit);
+  return rankEntries(eligible, limit);
 }
