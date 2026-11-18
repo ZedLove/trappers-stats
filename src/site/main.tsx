@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import App from './App';
 import GamesPage from './pages/GamesPage';
+import LeadersPage from './pages/LeadersPage';
 import NotFound from './pages/NotFound';
 import PlayerPage from './pages/PlayerPage';
 import BoxScorePage from './pages/BoxScorePage';
@@ -17,6 +18,7 @@ const router = createBrowserRouter(
       element: <App />,
       children: [
         { index: true, element: <StatsPage /> },
+        { path: 'leaders', element: <LeadersPage /> },
         { path: 'players/:playerId', element: <PlayerPage /> },
         { path: 'games', element: <GamesPage /> },
         { path: 'games/:gameId', element: <BoxScorePage /> },
