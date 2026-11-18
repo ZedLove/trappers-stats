@@ -1,4 +1,8 @@
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import {
+  Accordion,
+  AccordionDetails,
+  AccordionSummary,
   Box,
   Chip,
   FormControl,
@@ -8,12 +12,14 @@ import {
   Paper,
   Select,
   Typography,
+  useMediaQuery,
   useTheme,
 } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import {
   Activity,
   Award,
+  ChevronDown,
   Crown,
   Flame,
   Footprints,
@@ -236,6 +242,77 @@ function LeaderCard({
   );
 }
 
+/**
+ * A leaders section. On desktop it's a plain Paper with every section visible;
+ * on phones it becomes an accordion row so only one section is open at a time.
+ */
+function LeaderSection({
+  id,
+  title,
+  icon: Icon,
+  chip,
+  expanded,
+  onToggle,
+  collapsible,
+  children,
+}: {
+  id: string;
+  title: string;
+  icon: LucideIcon;
+  chip: string;
+  expanded: boolean;
+  onToggle: () => void;
+  collapsible: boolean;
+  children: ReactNode;
+}) {
+  const heading = (
+    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, minWidth: 0 }}>
+      <Icon size={22} aria-hidden />
+      <Typography variant="h6" component="h2">
+        {title}
+      </Typography>
+      <Chip label={chip} size="small" variant="outlined" sx={{ ml: 'auto' }} />
+    </Box>
+  );
+
+  if (!collapsible) {
+    return (
+      <Paper data-section={id} variant="outlined" sx={{ p: 2, scrollMarginTop: '72px' }}>
+        <Box sx={{ mb: 2 }}>{heading}</Box>
+        {children}
+      </Paper>
+    );
+  }
+
+  return (
+    <Accordion
+      data-section={id}
+      expanded={expanded}
+      onChange={onToggle}
+      variant="outlined"
+      disableGutters
+      sx={{
+        '&:before': { display: 'none' },
+        borderRadius: 1,
+        overflow: 'hidden',
+        scrollMarginTop: '72px',
+      }}
+    >
+      <AccordionSummary
+        expandIcon={<ChevronDown size={20} />}
+        aria-controls={`${id}-content`}
+        id={`${id}-header`}
+        sx={{ px: 2, py: 0.5 }}
+      >
+        {heading}
+      </AccordionSummary>
+      <AccordionDetails sx={{ px: 2, pb: 2, pt: 0 }} id={`${id}-content`}>
+        {children}
+      </AccordionDetails>
+    </Accordion>
+  );
+}
+
 function PageHeader({
   season,
   onChange,
@@ -272,6 +349,28 @@ function PageHeader({
 export default function LeadersPage() {
   useDocumentTitle('Leaders');
   const [searchParams, setSearchParams] = useSearchParams();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  // Triple Crown is open by default; tapping another header swaps the open one.
+  const [openSection, setOpenSection] = useState<string | null>('triple');
+  function toggleSection(id: string) {
+    return () => setOpenSection((current) => (current === id ? null : id));
+  }
+
+  // Bring a newly opened section just under the sticky AppBar. Skip the initial
+  // render so loading the page doesn't scroll on its own.
+  const initialRender = useRef(true);
+  useEffect(() => {
+    if (initialRender.current) {
+      initialRender.current = false;
+      return;
+    }
+    if (!isMobile || openSection === null) return;
+    const node = document.querySelector<HTMLElement>(`[data-section="${openSection}"]`);
+    if (!node?.scrollIntoView) return;
+    const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
+    node.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
+  }, [openSection, isMobile]);
 
   // All-time is the default. The season select offers every available season
   // (currently just 2026) plus All-time.
@@ -334,14 +433,15 @@ export default function LeadersPage() {
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
       <PageHeader season={season} onChange={changeSeason} />
 
-      <Paper variant="outlined" sx={{ p: 2 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-          <Crown size={22} aria-hidden />
-          <Typography variant="h6" component="h2">
-            The Triple Crown
-          </Typography>
-          <Chip label="AVG · OPS · HR" size="small" variant="outlined" sx={{ ml: 'auto' }} />
-        </Box>
+      <LeaderSection
+        id="triple"
+        title="The Triple Crown"
+        icon={Crown}
+        chip="AVG · OPS · HR"
+        expanded={openSection === 'triple'}
+        onToggle={toggleSection('triple')}
+        collapsible={isMobile}
+      >
         <Box
           sx={{
             display: 'grid',
@@ -358,16 +458,17 @@ export default function LeadersPage() {
             />
           ))}
         </Box>
-      </Paper>
+      </LeaderSection>
 
-      <Paper variant="outlined" sx={{ p: 2 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-          <Medal size={22} aria-hidden />
-          <Typography variant="h6" component="h2">
-            Honourable Mentions
-          </Typography>
-          <Chip label="1B · 2B · 3B · BB" size="small" variant="outlined" sx={{ ml: 'auto' }} />
-        </Box>
+      <LeaderSection
+        id="honourable"
+        title="Honourable Mentions"
+        icon={Medal}
+        chip="1B · 2B · 3B · BB"
+        expanded={openSection === 'honourable'}
+        onToggle={toggleSection('honourable')}
+        collapsible={isMobile}
+      >
         <Box
           sx={{
             display: 'grid',
@@ -383,16 +484,17 @@ export default function LeadersPage() {
             />
           ))}
         </Box>
-      </Paper>
+      </LeaderSection>
 
-      <Paper variant="outlined" sx={{ p: 2 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-          <Activity size={22} aria-hidden />
-          <Typography variant="h6" component="h2">
-            Streaks
-          </Typography>
-          <Chip label="HIT · OB · 0K · XBH" size="small" variant="outlined" sx={{ ml: 'auto' }} />
-        </Box>
+      <LeaderSection
+        id="streaks"
+        title="Streaks"
+        icon={Activity}
+        chip="HIT · OB · 0K · XBH"
+        expanded={openSection === 'streaks'}
+        onToggle={toggleSection('streaks')}
+        collapsible={isMobile}
+      >
         <Box
           sx={{
             display: 'grid',
@@ -411,7 +513,7 @@ export default function LeadersPage() {
         <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1.5 }}>
           * denotes active streak
         </Typography>
-      </Paper>
+      </LeaderSection>
     </Box>
   );
 }

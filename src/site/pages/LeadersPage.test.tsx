@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { SeasonFile } from '../../shared/schema';
@@ -66,7 +66,37 @@ beforeEach(() => {
   testState.seasons = testState.defaultSeasons;
 });
 
-afterEach(cleanup);
+const originalMatchMedia = window.matchMedia;
+const originalScrollIntoView = Element.prototype.scrollIntoView;
+
+function stubMobile() {
+  Object.defineProperty(window, 'matchMedia', {
+    writable: true,
+    configurable: true,
+    value: (query: string) => ({
+      matches: query.includes('max-width'),
+      media: query,
+      onchange: null,
+      addListener: () => {},
+      removeListener: () => {},
+      addEventListener: () => {},
+      removeEventListener: () => {},
+      dispatchEvent: () => false,
+    }),
+  });
+}
+
+function stubScroll() {
+  const fn = vi.fn();
+  Element.prototype.scrollIntoView = fn;
+  return fn;
+}
+
+afterEach(() => {
+  cleanup();
+  window.matchMedia = originalMatchMedia;
+  Element.prototype.scrollIntoView = originalScrollIntoView;
+});
 
 function renderPage() {
   return render(
@@ -241,5 +271,70 @@ describe('LeadersPage', () => {
     renderPage();
     expect(screen.getByText(/no leaders yet/i)).toBeInTheDocument();
     expect(screen.queryByRole('heading', { name: 'The Triple Crown' })).not.toBeInTheDocument();
+  });
+});
+
+describe('LeadersPage — mobile sections', () => {
+  function header(name: RegExp | string) {
+    return screen.getByRole('button', { name });
+  }
+
+  it('collapses sections on mobile with the Triple Crown open by default', () => {
+    stubMobile();
+    renderPage();
+
+    expect(header(/The Triple Crown/)).toHaveAttribute('aria-expanded', 'true');
+    expect(header(/Honourable Mentions/)).toHaveAttribute('aria-expanded', 'false');
+    expect(header(/Streaks/)).toHaveAttribute('aria-expanded', 'false');
+  });
+
+  it('opens one section at a time (accordion)', () => {
+    stubMobile();
+    renderPage();
+
+    fireEvent.click(header(/Streaks/));
+    expect(header(/Streaks/)).toHaveAttribute('aria-expanded', 'true');
+    expect(header(/The Triple Crown/)).toHaveAttribute('aria-expanded', 'false');
+
+    fireEvent.click(header(/Honourable Mentions/));
+    expect(header(/Honourable Mentions/)).toHaveAttribute('aria-expanded', 'true');
+    expect(header(/Streaks/)).toHaveAttribute('aria-expanded', 'false');
+  });
+
+  it('lets the open section be closed again', () => {
+    stubMobile();
+    renderPage();
+
+    fireEvent.click(header(/The Triple Crown/));
+    expect(header(/The Triple Crown/)).toHaveAttribute('aria-expanded', 'false');
+  });
+
+  it('keeps every section expanded on desktop', () => {
+    renderPage();
+    expect(screen.queryByRole('button', { name: /The Triple Crown/ })).not.toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'The Triple Crown' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Streaks' })).toBeInTheDocument();
+  });
+
+  it('smooth-scrolls the newly opened section into view', async () => {
+    stubMobile();
+    const scroll = stubScroll();
+    renderPage();
+    expect(scroll).not.toHaveBeenCalled(); // loading the page doesn't scroll
+
+    fireEvent.click(header(/Streaks/));
+    await waitFor(() =>
+      expect(scroll).toHaveBeenCalledWith({ behavior: 'smooth', block: 'start' }),
+    );
+    expect(scroll.mock.instances[0]).toHaveTextContent('Streaks');
+  });
+
+  it('does not scroll when a section is closed', () => {
+    stubMobile();
+    const scroll = stubScroll();
+    renderPage();
+
+    fireEvent.click(header(/The Triple Crown/)); // closes the default-open section
+    expect(scroll).not.toHaveBeenCalled();
   });
 });
