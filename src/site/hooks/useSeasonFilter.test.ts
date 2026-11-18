@@ -55,6 +55,33 @@ describe('useSeasonFilter', () => {
     expect(result.current.filter.season).toBe(latestYear);
   });
 
+  it('defaults to qualified-only and reads ?qualified=all', () => {
+    const defaultHook = renderHook(() => useSeasonFilter(), {
+      wrapper: wrapperWith(['/']),
+    });
+    expect(defaultHook.result.current.qualified).toBe(true);
+
+    const allHook = renderHook(() => useSeasonFilter(), {
+      wrapper: wrapperWith(['/?qualified=all']),
+    });
+    expect(allHook.result.current.qualified).toBe(false);
+  });
+
+  it('writes the qualification toggle back to the URL', () => {
+    const { result } = renderHook(
+      () => ({ hook: useSeasonFilter(), search: useLocation().search }),
+      { wrapper: wrapperWith(['/']) },
+    );
+
+    act(() => result.current.hook.setQualified(false));
+    expect(result.current.search).toContain('qualified=all');
+    expect(result.current.hook.qualified).toBe(false);
+
+    act(() => result.current.hook.setQualified(true));
+    expect(result.current.search).toContain('qualified=qualified');
+    expect(result.current.hook.qualified).toBe(true);
+  });
+
   it('writes season and phase back to the URL without clobbering each other', () => {
     const { result } = renderHook(
       () => ({ hook: useSeasonFilter(), search: useLocation().search }),

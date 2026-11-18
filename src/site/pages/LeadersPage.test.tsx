@@ -14,6 +14,9 @@ vi.mock('../../shared/data', async () => {
     makePlayer({ id: 'alpha', name: 'Alpha' }),
     makePlayer({ id: 'beta', name: 'Beta' }),
     makePlayer({ id: 'gamma', name: 'Gamma' }),
+    makePlayer({ id: 'delta', name: 'Delta' }),
+    makePlayer({ id: 'epsilon', name: 'Epsilon' }),
+    makePlayer({ id: 'zeta', name: 'Zeta' }),
   ];
   const seasons = [
     makeSeason({
@@ -24,18 +27,23 @@ vi.mock('../../shared/data', async () => {
           id: 'g1',
           date: '2026-05-01',
           lines: [
-            makeLine({ playerId: 'alpha', ab: 4, '1b': 2 }), // .500, 2 singles
-            makeLine({ playerId: 'beta', ab: 4, '1b': 1 }), // .250
-            makeLine({ playerId: 'gamma', bb: 1 }), // no AB -> null rates, 1 BB
+            makeLine({ playerId: 'alpha', ab: 4, '1b': 2 }),
+            makeLine({ playerId: 'beta', ab: 4, hr: 2 }),
+            makeLine({ playerId: 'gamma', bb: 1 }),
+            makeLine({ playerId: 'delta', ab: 4, '2b': 1 }),
+            makeLine({ playerId: 'epsilon', ab: 4, '1b': 2 }),
+            makeLine({ playerId: 'zeta', ab: 3, hr: 3 }), // 3 PA — below 1.58 × 2 games
           ],
         }),
         makeGame({
           id: 'g2',
           date: '2026-05-02',
           lines: [
-            makeLine({ playerId: 'alpha', ab: 4, '1b': 1 }), // 3-for-8, .375
-            makeLine({ playerId: 'beta', ab: 4, hr: 1 }), // 2-for-8, 1 HR
-            makeLine({ playerId: 'gamma', bb: 2 }), // 3 BB total
+            makeLine({ playerId: 'alpha', ab: 4, hr: 1 }),
+            makeLine({ playerId: 'beta', ab: 4, hr: 2 }),
+            makeLine({ playerId: 'gamma', bb: 2 }),
+            makeLine({ playerId: 'delta', ab: 4, '2b': 1 }),
+            makeLine({ playerId: 'epsilon', ab: 4, '3b': 1 }),
           ],
         }),
       ],
@@ -69,14 +77,17 @@ function renderPage() {
 }
 
 function section(heading: string): HTMLElement {
-  const title = screen.getByRole('heading', { name: heading });
-  const paper = title.closest('.MuiPaper-root');
+  const paper = screen.getByRole('heading', { name: heading }).closest('.MuiPaper-root');
   expect(paper).not.toBeNull();
   return paper as HTMLElement;
 }
 
 function card(field: string, scope: HTMLElement): HTMLElement {
   return within(scope).getByTestId(`leader-${field}`);
+}
+
+function entry(field: string, position: number, scope: HTMLElement): HTMLElement {
+  return within(scope).getByTestId(`leader-${field}-${position}`);
 }
 
 describe('LeadersPage', () => {
@@ -88,49 +99,62 @@ describe('LeadersPage', () => {
     expect(screen.getByRole('heading', { name: 'Honourable Mentions' })).toBeInTheDocument();
   });
 
-  it('shows the AVG and OPS leaders with formatted rates', () => {
+  it('shows five ranked entries with shrinking type for places 1-3 and paragraph text for 4-5', () => {
+    renderPage();
+    const hr = card('hr', section('The Triple Crown'));
+    const entries = within(hr).getAllByRole('listitem');
+    expect(entries).toHaveLength(5);
+
+    expect(within(entry('hr', 1, hr)).getByRole('link')).toHaveTextContent('Beta');
+    expect(entry('hr', 1, hr)).toHaveTextContent('1');
+    expect(within(entry('hr', 2, hr)).getByRole('link')).toHaveTextContent('Zeta');
+    // Unqualified players still appear in counting-stat categories.
+    expect(within(entry('hr', 3, hr)).getByRole('link')).toHaveTextContent('Alpha');
+
+    expect(within(hr).getByTestId('leader-hr-1-value')).toHaveClass('MuiTypography-h3');
+    expect(within(hr).getByTestId('leader-hr-2-value')).toHaveClass('MuiTypography-h4');
+    expect(within(hr).getByTestId('leader-hr-3-value')).toHaveClass('MuiTypography-h5');
+    expect(within(hr).getByTestId('leader-hr-4-value')).toHaveClass('MuiTypography-body2');
+    expect(within(hr).getByTestId('leader-hr-5-value')).toHaveClass('MuiTypography-body2');
+  });
+
+  it('shares a rank for ties', () => {
+    renderPage();
+    const avg = card('avg', section('The Triple Crown'));
+    // Beta leads at .500; Alpha and Epsilon tie at .375 (competition ranks).
+    expect(
+      [1, 2, 3, 4].map(
+        (position) => within(avg).getByTestId(`leader-avg-${position}-rank`).textContent,
+      ),
+    ).toEqual(['1', '2', '2', '4']);
+  });
+
+  it('excludes unqualified players from rate categories', () => {
     renderPage();
     const tripleCrown = section('The Triple Crown');
 
     const avg = card('avg', tripleCrown);
-    expect(within(avg).getByText('.375')).toBeInTheDocument(); // Alpha 3-for-8
-    expect(within(avg).getByRole('link', { name: 'Alpha' })).toHaveAttribute('href', '/players/alpha');
+    expect(within(avg).getByTestId('leader-avg-1-value')).toHaveTextContent('.500');
+    expect(within(avg).queryByRole('link', { name: 'Zeta' })).not.toBeInTheDocument();
 
     const ops = card('ops', tripleCrown);
-    expect(within(ops).getByText('.875')).toBeInTheDocument(); // Beta: .250 OBP + .625 SLG
-    expect(within(ops).getByRole('link', { name: 'Beta' })).toBeInTheDocument();
+    // Zeta's hypothetical 5.000 OPS is gated out; Beta leads at 2.500.
+    expect(within(ops).getByTestId('leader-ops-1-value')).toHaveTextContent('2.500');
+    expect(within(ops).queryByRole('link', { name: 'Zeta' })).not.toBeInTheDocument();
   });
 
-  it('shows the home-run leader as a raw count', () => {
-    renderPage();
-    const hr = card('hr', section('The Triple Crown'));
-    expect(within(hr).getByText('1')).toBeInTheDocument();
-    expect(within(hr).getByRole('link', { name: 'Beta' })).toBeInTheDocument();
-  });
-
-  it('shows the singles and walks leaders in Honourable Mentions', () => {
+  it('lists five in the Honourable Mentions categories too', () => {
     renderPage();
     const mentions = section('Honourable Mentions');
 
     const singles = card('singles', mentions);
-    expect(within(singles).getByText('3')).toBeInTheDocument();
+    expect(within(singles).getAllByRole('listitem')).toHaveLength(5);
     expect(within(singles).getByRole('link', { name: 'Alpha' })).toBeInTheDocument();
 
     const walks = card('bb', mentions);
-    expect(within(walks).getByText('3')).toBeInTheDocument();
+    expect(within(walks).getAllByRole('listitem')).toHaveLength(5);
+    expect(within(walks).getByTestId('leader-bb-1-value')).toHaveTextContent('3');
     expect(within(walks).getByRole('link', { name: 'Gamma' })).toBeInTheDocument();
-  });
-
-  it('lists every player when a category is tied', () => {
-    renderPage();
-    // Nobody hit a triple — all three players are tied at zero.
-    const triples = card('triples', section('Honourable Mentions'));
-    expect(within(triples).getByText('0')).toBeInTheDocument();
-    expect(within(triples).getAllByRole('link').map((link) => link.textContent)).toEqual([
-      'Alpha',
-      'Beta',
-      'Gamma',
-    ]);
   });
 
   it('shows an empty state when there are no games', () => {
