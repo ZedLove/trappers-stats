@@ -190,6 +190,7 @@ export default function StatsGrid({ rows }: StatsGridProps) {
               autoHeight
               hideFooter
               disableRowSelectionOnClick
+              disableVirtualization
               initialState={{ sorting: { sortModel: [{ field: 'avg', sort: 'desc' }] } }}
             />
           </Box>

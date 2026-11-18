@@ -69,6 +69,20 @@ function zebraOverrides(tint: string, zebraSolid: string) {
           '& .MuiDataGrid-row--striped': {
             backgroundColor: tint,
           },
+          // Pins the first (player-name) column so it stays visible during
+          // horizontal scroll. Opaque backgrounds (paper, zebraSolid on the
+          // striped rows) keep scrolling columns from showing through beneath.
+          '& .MuiDataGrid-columnHeader[data-field="name"], & .MuiDataGrid-cell[data-field="name"]':
+            {
+              position: 'sticky',
+              left: 0,
+              zIndex: 1,
+              backgroundColor: theme.palette.background.paper,
+              borderRight: `1px solid ${theme.palette.divider}`,
+            },
+          '& .MuiDataGrid-row--striped .MuiDataGrid-cell[data-field="name"]': {
+            backgroundColor: zebraSolid,
+          },
           // Vertical divider before the first column of each stat group
           // (R, BB, AVG). Applied to both header and body cells via the
           // `colgroup-sep` className set in StatsGrid's column definitions.
