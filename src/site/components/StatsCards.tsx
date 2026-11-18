@@ -33,6 +33,34 @@ type SortField =
   | 'ops';
 
 type SortDir = 'asc' | 'desc';
+type CountingSortField = Exclude<SortField, 'avg' | 'obp' | 'slg' | 'ops'>;
+
+// Rate sorts keep the compact row intact and just move the emphasis. Counting
+// sorts take over the first slot so the highlighted stat is always visible.
+const RATE_SORT_FIELDS: ReadonlySet<SortField> = new Set(['avg', 'obp', 'slg', 'ops']);
+
+function isCountingField(field: SortField): field is CountingSortField {
+  return !RATE_SORT_FIELDS.has(field);
+}
+
+const SORT_LABELS: Record<SortField, string> = {
+  g: 'G',
+  pa: 'PA',
+  ab: 'AB',
+  r: 'R',
+  h: 'H',
+  singles: '1B',
+  doubles: '2B',
+  triples: '3B',
+  hr: 'HR',
+  bb: 'BB',
+  sf: 'SF',
+  k: 'SO',
+  avg: 'AVG',
+  obp: 'OBP',
+  slg: 'SLG',
+  ops: 'OPS',
+};
 
 const SORT_CHIPS: Array<{ field: SortField; label: string }> = [
   { field: 'g', label: 'G' },
@@ -66,7 +94,7 @@ interface StatProps {
   value: string;
   /** Stable key used to tag the value for tests (`stat-<field>`). */
   field: string;
-  /** AVG is the visual headline of the card. */
+  /** The active sort stat gets the colored headline treatment. */
   emphasized?: boolean;
 }
 
@@ -126,6 +154,7 @@ function RankBadge({ rank }: { rank: number }) {
 // The detail stats revealed when a card is expanded. Counting stats render as
 // raw integers, matching the headline row. `field` indexes into the row.
 const DETAIL_STATS = [
+  { label: 'G', field: 'g' },
   { label: 'PA', field: 'pa' },
   { label: 'AB', field: 'ab' },
   { label: 'R', field: 'r' },
@@ -142,10 +171,11 @@ const DETAIL_STATS = [
  * Phone-width leaderboard: a sort-chip row plus a vertical list of compact
  * player cards, one per player. Tapping a chip sorts by that stat; tapping the
  * active chip flips direction. Each card leads with a rank badge and the
- * player's name linking to their page, followed by a compact
- * G / AVG / OBP / SLG / OPS row with AVG as the headline. A chevron button
- * expands the card into a full counting-stat grid; expanding one card collapses
- * the previously-expanded one (accordion).
+ * player's name linking to their page, followed by a compact headline row.
+ * Rate sorts (AVG/OBP/SLG/OPS) keep the row as G / AVG / OBP / SLG / OPS and
+ * just move the colored emphasis; counting sorts put that stat in the first
+ * slot so it stays visible. A chevron button expands the card into the full
+ * counting-stat grid; expanding one card collapses the previous one (accordion).
  */
 export default function StatsCards({ rows }: StatsCardsProps) {
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -153,6 +183,8 @@ export default function StatsCards({ rows }: StatsCardsProps) {
   const [sortDir, setSortDir] = useState<SortDir>('desc');
 
   const sortedRows = useMemo(() => sortRows(rows, sortField, sortDir), [rows, sortField, sortDir]);
+  // Default/rate sorts show G first; counting sorts swap G out for the active stat.
+  const headlineField: CountingSortField = isCountingField(sortField) ? sortField : 'g';
 
   function handleSortChange(field: SortField) {
     if (field === sortField) {
@@ -224,11 +256,36 @@ export default function StatsCards({ rows }: StatsCardsProps) {
                 </IconButton>
               </Box>
               <Box sx={{ display: 'flex', gap: 1 }}>
-                <Stat label="G" field="g" value={String(row.g)} />
-                <Stat label="AVG" field="avg" value={formatRate(row.avg)} emphasized />
-                <Stat label="OBP" field="obp" value={formatRate(row.obp)} />
-                <Stat label="SLG" field="slg" value={formatRate(row.slg)} />
-                <Stat label="OPS" field="ops" value={formatRate(row.ops)} />
+                <Stat
+                  label={SORT_LABELS[headlineField]}
+                  field={headlineField}
+                  value={String(row[headlineField])}
+                  emphasized={headlineField === sortField}
+                />
+                <Stat
+                  label="AVG"
+                  field="avg"
+                  value={formatRate(row.avg)}
+                  emphasized={sortField === 'avg'}
+                />
+                <Stat
+                  label="OBP"
+                  field="obp"
+                  value={formatRate(row.obp)}
+                  emphasized={sortField === 'obp'}
+                />
+                <Stat
+                  label="SLG"
+                  field="slg"
+                  value={formatRate(row.slg)}
+                  emphasized={sortField === 'slg'}
+                />
+                <Stat
+                  label="OPS"
+                  field="ops"
+                  value={formatRate(row.ops)}
+                  emphasized={sortField === 'ops'}
+                />
               </Box>
               {expanded && (
                 <Box
@@ -241,9 +298,11 @@ export default function StatsCards({ rows }: StatsCardsProps) {
                     borderColor: 'divider',
                   }}
                 >
-                  {DETAIL_STATS.map(({ label, field }) => (
-                    <Stat key={field} label={label} field={field} value={String(row[field])} />
-                  ))}
+                  {DETAIL_STATS.filter(({ field }) => field !== headlineField).map(
+                    ({ label, field }) => (
+                      <Stat key={field} label={label} field={field} value={String(row[field])} />
+                    ),
+                  )}
                 </Box>
               )}
             </Paper>
