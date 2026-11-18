@@ -1,4 +1,16 @@
-import { Box, Chip, Link as MuiLink, Paper, Typography } from '@mui/material';
+import {
+  Box,
+  Chip,
+  FormControl,
+  InputLabel,
+  Link as MuiLink,
+  MenuItem,
+  Paper,
+  Select,
+  Typography,
+  useTheme,
+} from '@mui/material';
+import { alpha } from '@mui/material/styles';
 import {
   Award,
   Crown,
@@ -11,7 +23,7 @@ import {
   Zap,
   type LucideIcon,
 } from 'lucide-react';
-import { Link as RouterLink } from 'react-router-dom';
+import { Link as RouterLink, useSearchParams } from 'react-router-dom';
 import { getPlayer, seasons } from '../../shared/data';
 import {
   type LeaderEntry,
@@ -19,7 +31,7 @@ import {
   type LeaderRow,
   leadersFor,
 } from '../../shared/leaders';
-import { filterGames, leaderboard } from '../../shared/queries';
+import { filterGames, leaderboard, type SeasonFilter } from '../../shared/queries';
 import { formatRate } from '../../shared/stats';
 import EmptyState from '../components/EmptyState';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
@@ -48,6 +60,13 @@ const HONOURABLE_MENTIONS: Category[] = [
 // The podium shrinks as rank increases; places four and five read as plain text.
 const PODIUM_VARIANTS = { 1: 'h3', 2: 'h4', 3: 'h5' } as const;
 
+// Gold / silver / bronze, tuned per theme so each podium place stays legible.
+const PODIUM_COLORS = {
+  1: { light: '#a16207', dark: '#facc15', label: '1st' },
+  2: { light: '#475569', dark: '#cbd5e1', label: '2nd' },
+  3: { light: '#9a3412', dark: '#fdba74', label: '3rd' },
+} as const;
+
 function formatValue(category: Category, value: number): string {
   return category.rate ? formatRate(value) : String(value);
 }
@@ -61,8 +80,14 @@ function LeaderEntryView({
   category: Category;
   index: number;
 }) {
+  const theme = useTheme();
   const { rank, value, row } = entry;
-  const podium = rank <= 3;
+  const podium = rank <= 3 ? PODIUM_COLORS[rank as 1 | 2 | 3] : undefined;
+  const accent = podium
+    ? theme.palette.mode === 'dark'
+      ? podium.dark
+      : podium.light
+    : undefined;
   const valueVariant = podium ? PODIUM_VARIANTS[rank as 1 | 2 | 3] : 'body2';
   const nameVariant = rank === 1 ? 'subtitle1' : rank === 2 ? 'body1' : 'body2';
 
@@ -70,23 +95,48 @@ function LeaderEntryView({
     <Box
       component="li"
       data-testid={`leader-${category.field}-${index + 1}`}
-      sx={{ display: 'flex', alignItems: 'baseline', gap: 1, minWidth: 0 }}
+      sx={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 1,
+        minWidth: 0,
+        px: podium ? 1 : 0.5,
+        py: podium ? 0.75 : 0.25,
+        borderRadius: 1.5,
+        borderLeft: '3px solid',
+        borderColor: accent ?? 'transparent',
+        bgcolor: accent ? alpha(accent, theme.palette.mode === 'dark' ? 0.16 : 0.1) : 'transparent',
+      }}
     >
-      <Typography
+      {/* Fixed-width rank column keeps the value and name aligned across rows. */}
+      <Box
         component="span"
-        data-testid={`leader-${category.field}-${index + 1}-rank`}
-        variant="caption"
-        color={podium ? 'secondary.main' : 'text.disabled'}
-        sx={{ width: 16, flexShrink: 0, fontWeight: podium ? 700 : 400 }}
+        sx={{ width: 34, flexShrink: 0, display: 'flex', alignItems: 'center', gap: 0.5 }}
       >
-        {rank}
-      </Typography>
+        {podium && (
+          <Medal
+            size={14}
+            color={accent}
+            aria-label={`${podium.label} place`}
+            data-testid={`medal-${category.field}-${index + 1}`}
+          />
+        )}
+        <Typography
+          component="span"
+          data-testid={`leader-${category.field}-${index + 1}-rank`}
+          variant="caption"
+          color={accent ?? 'text.disabled'}
+          sx={{ fontWeight: podium ? 700 : 400 }}
+        >
+          {rank}.
+        </Typography>
+      </Box>
       <Typography
         component="span"
         data-testid={`leader-${category.field}-${index + 1}-value`}
         variant={valueVariant}
-        color={podium ? 'secondary.main' : 'text.secondary'}
-        sx={{ fontWeight: podium ? 700 : 400, lineHeight: 1.15, minWidth: 42 }}
+        color={accent ?? 'text.secondary'}
+        sx={{ minWidth: 48, flexShrink: 0, textAlign: 'right', whiteSpace: 'nowrap', lineHeight: 1.15, fontWeight: podium ? 700 : 400 }}
       >
         {formatValue(category, value)}
       </Typography>
@@ -94,7 +144,7 @@ function LeaderEntryView({
         component="span"
         variant={nameVariant}
         color={podium ? 'text.primary' : 'text.secondary'}
-        sx={{ minWidth: 0 }}
+        sx={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
       >
         <MuiLink
           component={RouterLink}
@@ -173,27 +223,84 @@ function LeaderCard({
   );
 }
 
-/** All-time offensive leaders: the top five in each category, ranked. */
+function PageHeader({
+  season,
+  onChange,
+}: {
+  season: number | 'all';
+  onChange: (value: string) => void;
+}) {
+  return (
+    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
+      <Box>
+        <Typography variant="h4" component="h1">
+          Leaders
+        </Typography>
+        <Typography variant="subtitle1" color="text.secondary">
+          {season === 'all'
+            ? 'All-time offensive leaders across every season.'
+            : `${season} offensive leaders.`}
+        </Typography>
+      </Box>
+      <FormControl size="small" sx={{ minWidth: 160, ml: { sm: 'auto' } }}>
+        <InputLabel id="leaders-season-label">Season</InputLabel>
+        <Select
+          labelId="leaders-season-label"
+          label="Season"
+          value={String(season)}
+          onChange={(event) => onChange(event.target.value as string)}
+        >
+          <MenuItem value="all">All-time</MenuItem>
+          {seasons.map((seasonFile) => (
+            <MenuItem key={seasonFile.season} value={String(seasonFile.season)}>
+              {seasonFile.season}
+            </MenuItem>
+          ))}
+        </Select>
+      </FormControl>
+    </Box>
+  );
+}
+
+/** Offensive leaders for the selected period: the top five in each category. */
 export default function LeadersPage() {
   useDocumentTitle('Leaders');
+  const [searchParams, setSearchParams] = useSearchParams();
 
-  const rows: LeaderRow[] = leaderboard(seasons, { season: 'all', phase: 'all' }).map(
-    ({ playerId, stats }) => ({
-      playerId,
-      name: getPlayer(playerId)?.name ?? playerId,
-      ...stats,
-    }),
-  );
-  // All-time today; when a season selector is added this is the period whose
-  // team-game count feeds the qualification ratio.
-  const teamGames = filterGames(seasons, { season: 'all', phase: 'all' }).length;
+  // All-time is the default. The season select offers every available season
+  // (currently just 2026) plus All-time.
+  const seasonParam = searchParams.get('season');
+  const season: number | 'all' =
+    seasonParam !== null &&
+    seasonParam !== 'all' &&
+    seasons.some((seasonFile) => String(seasonFile.season) === seasonParam)
+      ? Number(seasonParam)
+      : 'all';
+
+  const filter: SeasonFilter = { season, phase: 'all' };
+  const rows: LeaderRow[] = leaderboard(seasons, filter).map(({ playerId, stats }) => ({
+    playerId,
+    name: getPlayer(playerId)?.name ?? playerId,
+    ...stats,
+  }));
+  // Qualification scales with the games played in whichever period is viewed.
+  const teamGames = filterGames(seasons, filter).length;
+
+  function changeSeason(value: string) {
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        next.set('season', value);
+        return next;
+      },
+      { preventScrollReset: true },
+    );
+  }
 
   if (rows.length === 0) {
     return (
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-        <Typography variant="h4" component="h1">
-          Leaders
-        </Typography>
+        <PageHeader season={season} onChange={changeSeason} />
         <Paper variant="outlined">
           <EmptyState
             icon={Trophy}
@@ -207,14 +314,7 @@ export default function LeadersPage() {
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-      <Box>
-        <Typography variant="h4" component="h1">
-          Leaders
-        </Typography>
-        <Typography variant="subtitle1" color="text.secondary">
-          All-time offensive leaders across every season.
-        </Typography>
-      </Box>
+      <PageHeader season={season} onChange={changeSeason} />
 
       <Paper variant="outlined" sx={{ p: 2 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>

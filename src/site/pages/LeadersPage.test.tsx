@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { cleanup, render, screen, within } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { SeasonFile } from '../../shared/schema';
@@ -126,7 +126,37 @@ describe('LeadersPage', () => {
       [1, 2, 3, 4].map(
         (position) => within(avg).getByTestId(`leader-avg-${position}-rank`).textContent,
       ),
-    ).toEqual(['1', '2', '2', '4']);
+    ).toEqual(['1.', '2.', '2.', '4.']);
+  });
+
+  it('defaults to all-time and switches to a single season', () => {
+    renderPage();
+    const season = screen.getByRole('combobox', { name: 'Season' });
+    expect(season).toHaveTextContent('All-time');
+    expect(screen.getByText(/all-time offensive leaders/i)).toBeInTheDocument();
+
+    fireEvent.mouseDown(season);
+    fireEvent.click(screen.getByRole('option', { name: '2026' }));
+
+    expect(screen.getByText('2026 offensive leaders.')).toBeInTheDocument();
+    expect(screen.getByRole('combobox', { name: 'Season' })).toHaveTextContent('2026');
+  });
+
+  it('shows medal icons only for the top three places', () => {
+    renderPage();
+    const hr = card('hr', section('The Triple Crown'));
+    expect(within(hr).getByTestId('medal-hr-1')).toHaveAttribute('aria-label', '1st place');
+    expect(within(hr).getByTestId('medal-hr-2')).toHaveAttribute('aria-label', '2nd place');
+    expect(within(hr).getByTestId('medal-hr-3')).toHaveAttribute('aria-label', '3rd place');
+    expect(within(hr).queryByTestId('medal-hr-4')).not.toBeInTheDocument();
+    expect(within(hr).queryByTestId('medal-hr-5')).not.toBeInTheDocument();
+  });
+
+  it('lays each entry out in a horizontal flex row', () => {
+    renderPage();
+    const row = entry('hr', 1, section('The Triple Crown'));
+    expect(row).toHaveStyle({ display: 'flex' });
+    expect(row).toHaveStyle({ alignItems: 'center' });
   });
 
   it('excludes unqualified players from rate categories', () => {
