@@ -112,9 +112,9 @@ describe('suggestGameId', () => {
     expect(suggestGameId('2025-06-01', 't-bears', [])).toBe('2025-06-01-t-bears');
   });
 
-  it('appends -2 for a doubleheader', () => {
+  it('appends __2 for a doubleheader', () => {
     expect(suggestGameId('2025-06-01', 't-bears', ['2025-06-01-t-bears'])).toBe(
-      '2025-06-01-t-bears-2',
+      '2025-06-01-t-bears__2',
     );
   });
 
@@ -122,9 +122,9 @@ describe('suggestGameId', () => {
     expect(
       suggestGameId('2025-06-01', 't-bears', [
         '2025-06-01-t-bears',
-        '2025-06-01-t-bears-2',
+        '2025-06-01-t-bears__2',
       ]),
-    ).toBe('2025-06-01-t-bears-3');
+    ).toBe('2025-06-01-t-bears__3');
   });
 });
 

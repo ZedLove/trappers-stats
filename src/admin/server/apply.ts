@@ -34,12 +34,23 @@ export function suggestTeamId(name: string, existingIds: string[]): string {
   return nextUniqueId(slugify(name), existingIds);
 }
 
+// Game ids use a double-underscore suffix for doubleheaders so the extension is
+// unambiguous, e.g. 2026-08-10-chicken-willies__2.
+function nextGameId(base: string, existingIds: string[]): string {
+  if (!existingIds.includes(base)) return base;
+  let suffix = 2;
+  while (existingIds.includes(`${base}__${suffix}`)) {
+    suffix += 1;
+  }
+  return `${base}__${suffix}`;
+}
+
 export function suggestGameId(
   date: string,
   opponentId: string,
   existingIds: string[],
 ): string {
-  return nextUniqueId(`${date}-${opponentId}`, existingIds);
+  return nextGameId(`${date}-${opponentId}`, existingIds);
 }
 
 export function createSeasonFile(year: number): SeasonFile {

@@ -5,6 +5,10 @@ import {
   Box,
   Button,
   createFilterOptions,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   MenuItem,
   TextField,
   ToggleButton,
@@ -106,6 +110,7 @@ export default function GameEntry() {
   const [seasonInput, setSeasonInput] = useState('');
   const [savedGame, setSavedGame] = useState<Game | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [pendingGame, setPendingGame] = useState<{ game: Game; baseId: string } | null>(null);
 
   const { control, handleSubmit, reset } = useForm<Game>({
     resolver: zodResolver(GameSchema) as Resolver<Game>,
@@ -178,20 +183,30 @@ export default function GameEntry() {
     return location;
   }
 
+  async function saveGameInternal(seasonYear: number, game: Game) {
+    try {
+      await saveGame(seasonYear, game);
+      setSavedGame(game);
+    } catch (error) {
+      setSubmitError(error instanceof Error ? error.message : 'Failed to save game');
+    }
+  }
+
   async function onSubmit(values: Game) {
     if (season == null) return;
     setSubmitError(null);
 
     const existingIds = seasons.flatMap((seasonFile) => seasonFile.games.map((game) => game.id));
+    const baseId = `${values.date}-${values.opponentId}`;
     const id = suggestGameId(values.date, values.opponentId, existingIds);
     const game: Game = { ...values, id, locationId: values.locationId || undefined };
 
-    try {
-      await saveGame(season, game);
-      setSavedGame(game);
-    } catch (error) {
-      setSubmitError(error instanceof Error ? error.message : 'Failed to save game');
+    // A game with this key already exists — confirm the suffixed id before saving.
+    if (id !== baseId) {
+      setPendingGame({ game, baseId });
+      return;
     }
+    await saveGameInternal(season, game);
   }
 
   function handleAnother() {
@@ -598,6 +613,33 @@ export default function GameEntry() {
           Save game
         </Button>
       </Box>
+
+      <Dialog open={pendingGame != null} onClose={() => setPendingGame(null)}>
+        <DialogTitle>Duplicate game key</DialogTitle>
+        <DialogContent>
+          {pendingGame && (
+            <>
+              A game with key <code>{pendingGame.baseId}</code> already exists. Save as{' '}
+              <code>{pendingGame.game.id}</code>?
+            </>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setPendingGame(null)}>Cancel</Button>
+          <Button
+            variant="contained"
+            autoFocus
+            onClick={() => {
+              if (pendingGame && season != null) {
+                void saveGameInternal(season, pendingGame.game);
+              }
+              setPendingGame(null);
+            }}
+          >
+            {pendingGame ? `Save as ${pendingGame.game.id}` : 'Save'}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 }

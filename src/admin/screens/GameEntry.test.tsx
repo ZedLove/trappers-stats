@@ -9,6 +9,7 @@ import {
   type SeasonFile,
   type TeamsFile,
 } from '../../shared/schema';
+import { makeGame } from '../../fixtures/fixtures';
 import GameEntry from './GameEntry';
 
 afterEach(() => {
@@ -35,7 +36,7 @@ const STATE = {
       { id: 'riverbend-field', name: 'Riverbend Field' },
     ],
   } satisfies LocationsFile,
-  seasons: [{ season: 2026, division: null, games: [] }] satisfies SeasonFile[],
+  seasons: [{ season: 2026, division: null, games: [] }] as SeasonFile[],
 };
 
 function jsonResponse(data: unknown, ok = true, status = 200): Response {
@@ -43,12 +44,14 @@ function jsonResponse(data: unknown, ok = true, status = 200): Response {
 }
 
 let fetchMock: ReturnType<typeof vi.fn>;
+let stateOverride: typeof STATE | null = null;
 
 beforeEach(() => {
+  stateOverride = null;
   fetchMock = vi.fn(async (input: unknown, init?: RequestInit) => {
     const url = String(input);
     if (url.endsWith('/state')) {
-      return jsonResponse(STATE);
+      return jsonResponse(stateOverride ?? STATE);
     }
     if (url.endsWith('/save-game')) {
       const body = JSON.parse(String(init?.body)) as { season: number; game: unknown };
@@ -157,6 +160,40 @@ describe('GameEntry', () => {
       expect(parsed.data.innings).toHaveLength(9);
       expect(parsed.data.opponentHits).toBeUndefined();
     }
+  });
+
+  it('confirms a __2 suffix when the game key collides', async () => {
+    stateOverride = {
+      ...STATE,
+      seasons: [
+        {
+          season: 2026,
+          division: null,
+          games: [makeGame({ id: '2026-05-05-hornets', date: '2026-05-05', opponentId: 'hornets' })],
+        },
+      ],
+    };
+    await renderLoaded();
+    await fillMetadata();
+    await selectPlayer('Z-Man');
+    setNumber('AB', 3);
+    setNumber('1B', 1);
+    setNumber('R', 5);
+
+    submit();
+
+    // No save fires until the duplicate-key dialog is confirmed.
+    expect(await screen.findByRole('dialog')).toBeInTheDocument();
+    expect(saveGameCalls()).toHaveLength(0);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Save as 2026-05-05-hornets__2' }));
+
+    expect(await screen.findByText(/Game saved/)).toBeInTheDocument();
+    expect(saveGameCalls()).toHaveLength(1);
+    const body = JSON.parse(
+      String((saveGameCalls()[0][1] as RequestInit).body),
+    ) as { game: { id: string } };
+    expect(body.game.id).toBe('2026-05-05-hornets__2');
   });
 
   it('defaults to home and records away when toggled', async () => {
