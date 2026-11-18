@@ -1,5 +1,5 @@
 import { AppBar, Box, Button, IconButton, Toolbar, Typography, useTheme } from '@mui/material';
-import { BarChart3, CalendarDays, Moon, Sun } from 'lucide-react';
+import { BarChart3, CalendarDays, Moon, Sun, Trophy } from 'lucide-react';
 import { Link, NavLink, Outlet } from 'react-router-dom';
 import SiteBreadcrumbs from './components/SiteBreadcrumbs';
 import { useThemeMode } from '../theme/themeMode';
@@ -62,6 +62,9 @@ export default function App() {
             <IconButton component={NavLink} to="/games" color="inherit" sx={navLinkSx} aria-label="Games">
               <CalendarDays size={20} />
             </IconButton>
+            <IconButton component={NavLink} to="/leaders" color="inherit" sx={navLinkSx} aria-label="Leaders">
+              <Trophy size={20} />
+            </IconButton>
           </Box>
           <Box sx={{ display: { xs: 'none', sm: 'inline-flex' } }}>
             <Button component={NavLink} to="/" end sx={navLinkSx} startIcon={<BarChart3 size={18} />}>
@@ -69,6 +72,9 @@ export default function App() {
             </Button>
             <Button component={NavLink} to="/games" sx={navLinkSx} startIcon={<CalendarDays size={18} />}>
               Games
+            </Button>
+            <Button component={NavLink} to="/leaders" sx={navLinkSx} startIcon={<Trophy size={18} />}>
+              Leaders
             </Button>
           </Box>
           <IconButton color="inherit" onClick={toggle} aria-label="Toggle theme" aria-pressed={isDark}>
